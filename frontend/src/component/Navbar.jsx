@@ -1,4 +1,4 @@
-import React from 'react'
+
 
 const Navbar = () => {
   return (
@@ -8,18 +8,9 @@ const Navbar = () => {
 
         <div className='md:mx-20 logo font-bold text-2xl'>
           <span className='text-green-500'> &lt;</span>
-          Pass
+            Pass
           <span className='text-green-500'>OP/ &gt;</span>
           </div>
-
-        
-        {/* <ul>
-            <li className='flex gap-4'>
-                <a className='hover:font-bold' href="/">Home</a>
-                <a className='hover:font-bold' href="#">Contact</a>
-                <a className='hover:font-bold' href="#">About</a>
-            </li>
-        </ul> */}
 
            <button className='text-white bg-green-700 md:mx-20 my-5 rounded-full flex justify-between items-center ring-white ring-1'>
              <img className='invert p-1 w-10' src="/icons/github.svg" alt="github logo" />

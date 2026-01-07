@@ -1,8 +1,8 @@
-import React from 'react'
 import { useRef, useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useSpring, animated } from '@react-spring/web'
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -19,6 +19,12 @@ const Manager = () => {
         const password = passwordArray.find(item => item.id === id);
         setPasswordToDelete(password);
     };
+
+    const springProps = useSpring({
+        from: { x: -500 }, // Slide in from the left and fade in
+        to: { x: 0 },
+        config: { tension: 170, friction: 20 },
+      })
 
     useEffect(() => {
         // Split the statement into characters
@@ -51,7 +57,7 @@ const Manager = () => {
         navigator.clipboard.writeText(text)
     }
 
-    const showPassword = (params) => {
+    const showPassword = () => {
         passwordRef.current.type = "text"
         if (ref.current.src.includes("icons/eyecross.png")) {
             ref.current.src = "icons/eye.png"
@@ -64,7 +70,7 @@ const Manager = () => {
         }
     }
 
-    const savePassword = (params) => {
+    const savePassword = () => {
         if (form.site.length > 3 && form.username.length > 3 && form.password.length > 3) {
             setPasswordArray([...passwordArray, { ...form, id: uuidv4() }])
             localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]))
@@ -112,8 +118,6 @@ const Manager = () => {
             <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"><div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-fuchsia-400 opacity-20 blur-[100px]"></div></div>
 
 
-
-
             <div className="p-2 md:p-0 md:mycontainer md:w-[900px]">
                 <h1 className='p-2 text-4xl text font-bold text-center'>
                     <span className='text-green-500'> &lt;</span>
@@ -148,9 +152,9 @@ const Manager = () => {
                         Save </button>
                 </div>
 
-                <div className="passwords">
+                <animated.div  style={springProps} className="passwords">
                     <h2 className='text-center text-2xl font-bold py-1'>Your passwords</h2>
-                    {passwordArray.length === 0 && <div>No passwords to show </div>}
+                    {passwordArray.length === 0 && <div className='text-center mt-2'>No passwords to show </div>}
                     {passwordArray.length != 0 && <table className="table-auto w-full rounded-md overflow-hidden">
                         <thead className='bg-green-800 text-center text-white'>
                             <tr>
@@ -220,14 +224,13 @@ const Manager = () => {
                             })}
                         </tbody>
                     </table>}
-                </div>
+                </animated.div>
                 {/* Render a separate modal for each password */}
                 {passwordToDelete && (
                     <div className="modal-overlay">
                         <div className="modal-container">
                             <div className="modal-header">
                                 <h1 className="modal-title">Confirm to delete your password</h1>
-                                {/* <button className="modal-close" onClick={() => setPasswordToDelete(null)}>×</button> */}
                             </div>
                             <div className="modal-body">
                                 <p><span className='font-bold text-[#333]'>Site</span>: {passwordToDelete.site}</p>
