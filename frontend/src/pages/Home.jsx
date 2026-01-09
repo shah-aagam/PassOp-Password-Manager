@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import useAuth from "@/hooks/useAuth";
+
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
@@ -16,34 +19,64 @@ export default function Home() {
         className="relative z-10 max-w-4xl text-center px-6"
       >
         <h1 className="text-6xl font-extrabold leading-tight tracking-tight">
-          Your passwords.
-          <br />
-          <span className="text-violet-400">Beautifully secured.</span>
+          {isAuthenticated ? (
+            <>
+              Welcome back.
+              <br />
+              <span className="text-violet-400">Your vault is ready.</span>
+            </>
+          ) : (
+            <>
+              Your passwords.
+              <br />
+              <span className="text-violet-400">
+                Secure. Private. Always with you.
+              </span>
+            </>
+          )}
         </h1>
 
-        <p className="mt-6 text-lg text-zinc-300">
-          A premium password manager with AES-256 encryption,
-          stunning UI, and zero compromises on security.
+        <p className="mt-6 text-lg text-zinc-300 max-w-2xl mx-auto">
+          {isAuthenticated
+            ? "Access, manage, and protect your passwords from one secure vault."
+            : "A secure password manager that protects your digital life with strong encryption and privacy-first design."}
         </p>
 
         <div className="mt-10 flex justify-center gap-6">
-          <Link to="/dashboard">
-            <Button
-              size="lg"
-              variant="default"
-              className="bg-violet-600 hover:bg-violet-600 hover:brightness-110 transition glow"
-            >
-              Open Vault
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/dashboard">
+              <Button
+                size="lg"
+                className="bg-violet-600 hover:bg-violet-600 hover:brightness-110 glow"
+              >
+                Go to Vault
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/dashboard">
+                <Button
+                  size="lg"
+                  className="bg-violet-600 hover:bg-violet-600 hover:brightness-110 glow"
+                >
+                  Open Vault
+                </Button>
+              </Link>
 
-
-          <Link to="/register">
-            <Button size="lg" variant="outline">
-              Learn More
-            </Button>
-          </Link>
+              <Link to="/register">
+                <Button size="lg" variant="outline">
+                  Learn More
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
+
+        <p className="mt-8 text-sm text-zinc-400">
+          Protected with industry-standard encryption. Your data stays yours.
+        </p>
+
+
 
       </motion.div>
     </div>

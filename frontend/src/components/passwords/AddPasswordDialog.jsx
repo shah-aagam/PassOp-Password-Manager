@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "@/utils/axiosInstance";
+import { getPasswordStrength, strengthLabel } from "@/utils/passwordStrength";
+
 
 export default function AddPasswordDialog({ onPasswordAdded }) {
   const [site, setSite] = useState("");
@@ -16,6 +18,8 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const strength = getPasswordStrength(password);
 
   const handleSave = async () => {
     if (!site || !username || !password) {
@@ -71,14 +75,14 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
             placeholder="Website (e.g. github.com)"
             value={site}
             onChange={(e) => setSite(e.target.value)}
-            className="bg-white/5 border-white/20"
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
           <Input
             placeholder="Username / Email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="bg-white/5 border-white/20"
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
           <Input
@@ -86,15 +90,36 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-white/5 border-white/20"
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
+
+          {password && (
+            <div className="space-y-1">
+              <div className="h-2 bg-zinc-700 rounded">
+                <div
+                  className={`h-2 rounded transition-all ${
+                    strength <= 1
+                      ? "bg-red-500 w-1/4"
+                      : strength === 2
+                      ? "bg-yellow-500 w-1/2"
+                      : strength === 3
+                      ? "bg-green-400 w-3/4"
+                      : "bg-green-500 w-full"
+                  }`}
+                />
+              </div>
+              <p className="text-xs text-zinc-400">
+                Strength: <span className="text-white">{strengthLabel(strength)}</span>
+              </p>
+            </div>
+          )}  
 
           <Button
             onClick={handleSave}
             disabled={loading}
             className="w-full bg-violet-600 hover:bg-violet-600 glow"
           >
-            {loading ? "Saving..." : "Save securely"}
+            {loading ? "Saving..." : "Save to vault"}
           </Button>
         </div>
       </DialogContent>

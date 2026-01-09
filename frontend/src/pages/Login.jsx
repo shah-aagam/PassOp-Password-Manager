@@ -46,7 +46,7 @@ export default function Login() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-white/5 border-white/20"
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
           <Input
@@ -54,7 +54,7 @@ export default function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-white/5 border-white/20"
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
           <Button

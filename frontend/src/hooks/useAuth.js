@@ -1,20 +1,28 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const syncAuth = () => {
+      setIsAuthenticated(!!localStorage.getItem("token"));
+    };
 
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    // Listen to token changes (logout / login)
+    window.addEventListener("storage", syncAuth);
 
-    setLoading(false);
+    return () => window.removeEventListener("storage", syncAuth);
   }, []);
 
-  return { isAuthenticated, loading };
+  const logout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    window.location.href = "/login";
+  };
+
+  return { isAuthenticated, logout };
 }
+
+
