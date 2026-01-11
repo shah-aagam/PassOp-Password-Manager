@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "@/utils/axiosInstance";
 import { getPasswordStrength, strengthLabel } from "@/utils/passwordStrength";
+import { generatePassword } from "@/utils/passwordGenerator";
+import { Eye, EyeOff } from "lucide-react";
 
 
 export default function AddPasswordDialog({ onPasswordAdded }) {
@@ -20,6 +22,12 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
   const [open, setOpen] = useState(false);
 
   const strength = getPasswordStrength(password);
+
+  const [length, setLength] = useState(16);
+  const [numbers, setNumbers] = useState(true);
+  const [symbols, setSymbols] = useState(true);
+  
+  const [showPassword, setShowPassword] = useState(true);
 
   const handleSave = async () => {
     if (!site || !username || !password) {
@@ -85,13 +93,26 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
             className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="placeholder:text-zinc-500 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
 
           {password && (
             <div className="space-y-1">
@@ -113,6 +134,18 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
               </p>
             </div>
           )}  
+
+          <Button
+            variant="outline"
+            onClick={() =>
+              setPassword(
+                generatePassword({ length, numbers, symbols })
+              )
+            }
+          >
+            Generate strong password
+          </Button>
+
 
           <Button
             onClick={handleSave}

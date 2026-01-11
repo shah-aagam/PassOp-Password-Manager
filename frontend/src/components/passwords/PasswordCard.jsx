@@ -7,103 +7,89 @@
 // 5️ Click 📋 → password copied
 // 6️ Backend decrypts only on demand
 
+import { useState, memo } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Copy } from "lucide-react";
-import { useState } from "react";
+import { Eye, EyeOff, Copy, Trash2, Edit } from "lucide-react";
 import axios from "@/utils/axiosInstance";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
-import { Trash2, Edit } from "lucide-react";
 import EditPasswordDialog from "@/components/passwords/EditPasswordDialog";
 
-export default function PasswordCard({ item }) {
+function PasswordCard({ item, onUpdated }) {
   const [password, setPassword] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
 
-  const confirmDelete = async () => {
-    await axios.delete(`/password/delete/${item._id}`);
-    window.location.reload(); // simple for now
-  };
+  const domain = item.site.toLowerCase().replace(/^https?:\/\//, "");
+  const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-  const togglePassword = async () => {
+
+  const fetchDecryptedPassword = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await axios.get(`/password/view/${item._id}`);
       setPassword(res.data.password);
-    } catch (err) {
-      alert("Failed to fetch password");
+      return res.data.password;
     } finally {
       setLoading(false);
     }
   };
 
-  // 📋 Copy password
-  const copyPassword = async () => {
-    try {
-      let textToCopy = password;
-
-      // If password not revealed yet → fetch first
-      if (!textToCopy) {
-        const res = await axios.get(`/password/view/${item._id}`);
-        textToCopy = res.data.password;
-      }
-
-      await navigator.clipboard.writeText(textToCopy);
-      alert("Password copied to clipboard");
-    } catch (err) {
-      alert("Failed to copy password");
-    }
+  const confirmDelete = async () => {
+    await axios.delete(`/password/delete/${item._id}`);
+    onUpdated();
   };
 
-  const requestViewPassword = () => {
-    if (password) {
-      setPassword(null);
-      return;
-    }
-    setPendingAction("view");
+  const copyPassword = async () => {
+    let text = password;
+    if (!text) text = await fetchDecryptedPassword();
+
+    await navigator.clipboard.writeText(text);
+    alert("Password copied. Clipboard history may retain this.");
+
+    setTimeout(async () => {
+      const current = await navigator.clipboard.readText();
+      if (current === text) {
+        await navigator.clipboard.writeText("");
+      }
+    }, 20000);
+  };
+
+  const requestAction = (action) => {
+    setPendingAction(action);
     setShowAuth(true);
   };
-
-  const requestCopyPassword = () => {
-  setPendingAction("copy");
-  setShowAuth(true);
-};
-
-const requestEditPassword = () => {
-  setPendingAction("edit");
-  setShowAuth(true);
-};
-
-const requestDeletePassword = () => {
-  setPendingAction("delete");
-  setShowAuth(true);
-};
-
 
   return (
     <motion.div
       whileHover={{ scale: 1.04 }}
       className="glass glow rounded-2xl p-6 transition"
     >
-      <h3 className="text-xl font-semibold">{item.site}</h3>
+      <div className="flex items-center gap-3">
+        <img
+          src={favicon}
+          alt=""
+          className="w-6 h-6 rounded"
+          onError={(e) => (e.currentTarget.style.display = "none")}
+        />
+        <h3 className="text-xl font-semibold">{item.site}</h3>
+      </div>
+
       <p className="text-sm text-zinc-300 mt-1">{item.username}</p>
 
-      {/* Password Display */}
-      <div className="mt-4 text-sm text-zinc-200">
-        {password ? (
-          <span className="font-mono">{password}</span>
-        ) : (
-          <span className="tracking-widest">••••••••</span>
-        )}
+      {/* Password display */}
+      <div className="mt-4 text-sm text-zinc-200 font-mono">
+        {password ? password : "••••••••"}
       </div>
 
       {/* Actions */}
       <div className="flex gap-4 mt-6">
         <button
-          title="View Password"
-          onClick={requestViewPassword}
+          title="View password"
+          onClick={() =>
+            password ? setPassword(null) : requestAction("view")
+          }
           disabled={loading}
           className="hover:text-violet-400 transition"
         >
@@ -111,59 +97,60 @@ const requestDeletePassword = () => {
         </button>
 
         <button
-          title="Copy Password"
-          onClick={requestCopyPassword}
+          title="Copy password"
+          onClick={() => requestAction("copy")}
           className="hover:text-violet-400 transition"
         >
           <Copy size={18} />
         </button>
 
         <button
-          title="Edit Password"
-          onClick={requestEditPassword}
+          title="Edit password"
+          onClick={() => requestAction("edit")}
           className="hover:text-violet-400 transition"
         >
           <Edit size={18} />
         </button>
 
         <button
-          title="Delete Password"
-          onClick={requestDeletePassword}
+          title="Delete password"
+          onClick={() => requestAction("delete")}
+          className="hover:text-red-400 transition"
         >
           <Trash2 size={18} />
         </button>
-
-        <EditPasswordDialog
-          open={showEdit}
-          onClose={() => setShowEdit(false)}
-          item={item}
-          onUpdated={() => window.location.reload()}
-        />
-
-        <ReAuthDialog
-          open={showAuth}
-          onClose={() => setShowAuth(false)}
-          onSuccess={async () => {
-            if (pendingAction === "view") {
-              await togglePassword();
-            }
-
-            if (pendingAction === "copy") {
-              await copyPassword();
-            }
-
-            if (pendingAction === "edit") {
-              setShowEdit(true);
-            }
-
-            if (pendingAction === "delete") {
-              await confirmDelete();
-            }
-
-            setPendingAction(null);
-          }}
-        />
       </div>
+
+      {/* Edit dialog */}
+      <EditPasswordDialog
+        open={showEdit}
+        onClose={() => setShowEdit(false)}
+        item={item}
+        onUpdated={onUpdated}
+      />
+
+      {/* Re-auth dialog */}
+      <ReAuthDialog
+        open={showAuth}
+        onClose={() => setShowAuth(false)}
+        onSuccess={async () => {
+          if (pendingAction === "view") {
+            await fetchDecryptedPassword();
+          }
+          if (pendingAction === "copy") {
+            await copyPassword();
+          }
+          if (pendingAction === "edit") {
+            setShowEdit(true);
+          }
+          if (pendingAction === "delete") {
+            await confirmDelete();
+          }
+          setPendingAction(null);
+        }}
+      />
     </motion.div>
   );
 }
+
+export default memo(PasswordCard);
