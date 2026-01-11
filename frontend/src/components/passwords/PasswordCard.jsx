@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // USER FLOW (END TO END)
 
 // 1 Dashboard loads
@@ -21,8 +22,15 @@ function PasswordCard({ item, onUpdated }) {
   const [pendingAction, setPendingAction] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
 
-  const domain = item.site.toLowerCase().replace(/^https?:\/\//, "");
-  const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  const isUrl = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(item.site);
+  
+  const domain = isUrl 
+    ? item.site.toLowerCase().replace(/^https?:\/\//, "").split('/')[0] 
+    : null;
+
+  const favicon = domain 
+    ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` 
+    : null;
 
 
   const fetchDecryptedPassword = async () => {
@@ -64,27 +72,34 @@ function PasswordCard({ item, onUpdated }) {
   return (
     <motion.div
       whileHover={{ scale: 1.04 }}
-      className="glass glow rounded-2xl p-6 transition"
+      className="glass glow rounded-2xl px-10 py-6 transition"
     >
       <div className="flex items-center gap-3">
-        <img
-          src={favicon}
-          alt=""
-          className="w-6 h-6 rounded"
-          onError={(e) => (e.currentTarget.style.display = "none")}
-        />
-        <h3 className="text-xl font-semibold">{item.site}</h3>
+
+        {favicon ? (
+          <img
+            src={favicon}
+            alt=""
+            className="w-6 h-6 rounded object-contain"
+          />
+        ) : (
+          <div className="w-6 h-6 rounded bg-violet-600 flex items-center justify-center text-sm font-bold text-white uppercase">
+            {item.site.charAt(0)}
+          </div>
+        )}
+        
+        <h3 className="text-xl font-semibold truncate" title={item.site}>
+          {item.site}
+        </h3>
       </div>
 
-      <p className="text-sm text-zinc-300 mt-1">{item.username}</p>
+      <p className="pl-10 text-sm text-zinc-300 mt-2">{item.username}</p>
 
-      {/* Password display */}
-      <div className="mt-4 text-sm text-zinc-200 font-mono">
+      <div className="pl-10 mt-2 text-sm text-zinc-200 font-mono">
         {password ? password : "••••••••"}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-4 mt-6">
+      <div className="flex justify-center gap-4 mt-6 ">
         <button
           title="View password"
           onClick={() =>
@@ -121,7 +136,7 @@ function PasswordCard({ item, onUpdated }) {
         </button>
       </div>
 
-      {/* Edit dialog */}
+
       <EditPasswordDialog
         open={showEdit}
         onClose={() => setShowEdit(false)}
@@ -129,7 +144,7 @@ function PasswordCard({ item, onUpdated }) {
         onUpdated={onUpdated}
       />
 
-      {/* Re-auth dialog */}
+
       <ReAuthDialog
         open={showAuth}
         onClose={() => setShowAuth(false)}
@@ -154,3 +169,4 @@ function PasswordCard({ item, onUpdated }) {
 }
 
 export default memo(PasswordCard);
+

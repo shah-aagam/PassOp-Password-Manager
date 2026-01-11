@@ -1,19 +1,22 @@
-import { useEffect, useState , useCallback } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import PasswordCard from "@/components/passwords/PasswordCard";
 import AddPasswordDialog from "@/components/passwords/AddPasswordDialog";
 import axios from "@/utils/axiosInstance";
 import useVaultLock from "@/hooks/useVaultLock";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import { Button } from "@/components/ui/button";
+import { LayoutGrid, List , Search } from "lucide-react";
 
 export default function Dashboard() {
   const [passwords, setPasswords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [view, setView] = useState("grid"); // grid | list
 
   const { locked, unlockVault } = useVaultLock();
   const [showUnlock, setShowUnlock] = useState(false);
+
 
   const fetchPasswords = useCallback(async () => {
     try {
@@ -29,13 +32,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchPasswords();
-  }, []);
+  }, [fetchPasswords]);
 
-  const filteredPasswords = passwords.filter((p) =>
-    `${p.site} ${p.username}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  /* 🔍 Search */
+  const filteredPasswords = useMemo(() => {
+    return passwords.filter((p) =>
+      `${p.site} ${p.username}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
+  }, [passwords, search]);
+
 
   if (locked) {
     return (
@@ -65,7 +72,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen px-6 py-10">
-
       <div className="max-w-7xl mx-auto">
 
         <motion.div
@@ -79,22 +85,52 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <AddPasswordDialog onPasswordAdded={fetchPasswords} />
 
-          {!loading && passwords.length > 0 && (
-            <input
-              placeholder="Search by site or username"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full sm:max-w-sm bg-white/5 border border-white/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-violet-500"
-            />
-          )}
-        </div>
+        {!loading && passwords.length > 0 && (
+          <div className="grid grid-cols-3 items-center gap-4 mb-10">
+
+            <div>
+              <AddPasswordDialog onPasswordAdded={fetchPasswords} />
+            </div>
+
+            <div className="flex justify-center w-full">
+              <div className="relative w-full max-w-xl">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-zinc-400" />
+                </div>
+
+                <input
+                  placeholder="Search passwords…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-white/5 border border-white/20 rounded-lg pl-12 pr-5 py-2.5 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                size="icon"
+                variant={view === "grid" ? "default" : "ghost"}
+                onClick={() => setView("grid")}
+              >
+                <LayoutGrid size={18} />
+              </Button>
+
+              <Button
+                size="icon"
+                variant={view === "list" ? "default" : "ghost"}
+                onClick={() => setView("list")}
+              >
+                <List size={18} />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* STATES */}
         {loading && (
-          <p className="mt-20 text-center text-zinc-400">
+          <p className="mt-24 text-center text-zinc-400">
             Loading your vault…
           </p>
         )}
@@ -114,28 +150,35 @@ export default function Dashboard() {
         )}
 
         {!loading && passwords.length > 0 && filteredPasswords.length === 0 && (
-          <p className="mt-20 text-center text-zinc-400">
+          <p className="mt-24 text-center text-zinc-400">
             No passwords match your search.
           </p>
         )}
 
-        {/* GRID */}
-        {!loading && filteredPasswords.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {filteredPasswords.map((p) => (
-              <PasswordCard
-                key={p._id}
-                item={p}
-                onUpdated={fetchPasswords}
-              />
-            ))}
-          </motion.div>
-        )}
+        {/* PASSWORDS */}
+        <AnimatePresence>
+          {!loading && filteredPasswords.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={
+                view === "grid"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  : "space-y-4"
+              }
+            >
+              {filteredPasswords.map((p) => (
+                <PasswordCard
+                  key={p._id}
+                  item={p}
+                  onUpdated={fetchPasswords}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
+
