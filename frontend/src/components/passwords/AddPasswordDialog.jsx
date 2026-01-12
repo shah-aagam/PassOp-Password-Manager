@@ -44,15 +44,12 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
         password,
       });
 
-      // ✅ Reset form
       setSite("");
       setUsername("");
       setPassword("");
 
-      // ✅ Close dialog
       setOpen(false);
 
-      // ✅ Refresh dashboard list
       if (onPasswordAdded) {
         onPasswordAdded();
       }

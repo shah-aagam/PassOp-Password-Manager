@@ -7,6 +7,8 @@ import useVaultLock from "@/hooks/useVaultLock";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, List , Search } from "lucide-react";
+import { Lock } from "lucide-react";
+
 
 export default function Dashboard() {
   const [passwords, setPasswords] = useState([]);
@@ -14,9 +16,10 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState("grid"); // grid | list
 
-  const { locked, unlockVault } = useVaultLock();
+
   const [showUnlock, setShowUnlock] = useState(false);
 
+  const { locked, unlockVault, lockVault } = useVaultLock();
 
   const fetchPasswords = useCallback(async () => {
     try {
@@ -109,6 +112,15 @@ export default function Dashboard() {
             </div>
 
             <div className="flex justify-end gap-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  title="Lock vault"
+                  onClick={lockVault}
+                >
+                  <Lock size={18} />
+                </Button>
+
               <Button
                 size="icon"
                 variant={view === "grid" ? "default" : "ghost"}
@@ -128,7 +140,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* STATES */}
         {loading && (
           <p className="mt-24 text-center text-zinc-400">
             Loading your vault…
@@ -155,7 +166,6 @@ export default function Dashboard() {
           </p>
         )}
 
-        {/* PASSWORDS */}
         <AnimatePresence>
           {!loading && filteredPasswords.length > 0 && (
             <motion.div

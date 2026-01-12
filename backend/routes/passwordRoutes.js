@@ -3,6 +3,8 @@ import Password from "../model/passwordModel.js";
 import { encrypt, decrypt } from "../utils/encrypt.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
+import { logAudit } from "../utils/auditLogger.js";
+
 const router = express.Router();
 
 
@@ -62,12 +64,46 @@ router.get("/view/:id", authMiddleware, async (req, res) => {
 
         const decryptedPassword = decrypt(entry.passwordEncrypted);
 
+        await logAudit({
+            userId: req.user.userId,
+            passwordId: entry._id,
+            action: "VIEW_PASSWORD",
+        });
+
         res.json({ password: decryptedPassword });
 
     } catch (err) {
         res.status(500).json({ message: "Server error", err });
     }
 });
+
+// COPY PASSWORD
+router.post("/copy/:id", authMiddleware, async (req, res) => {
+  try {
+    const entry = await Password.findOne({
+      _id: req.params.id,
+      userId: req.user.userId,
+    });
+
+    if (!entry) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const decryptedPassword = decrypt(entry.passwordEncrypted);
+
+    await logAudit({
+      userId: req.user.userId,
+      passwordId: entry._id,
+      action: "COPY_PASSWORD",
+    });
+
+    res.json({ password: decryptedPassword });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 // UPDATE PASSWORD
@@ -88,6 +124,12 @@ router.put("/update/:id", authMiddleware, async (req, res) => {
             { new: true }
         );
 
+        await logAudit({
+            userId: req.user.userId,
+            passwordId: updated._id,
+            action: "EDIT_PASSWORD",
+        });
+
         res.json({ message: "Updated", updated });
 
     } catch (err) {
@@ -103,6 +145,12 @@ router.delete("/delete/:id", authMiddleware, async (req, res) => {
             { _id: req.params.id, userId: req.user.userId },
             { deleted: true }
         );
+
+        await logAudit({
+            userId: req.user.userId,
+            passwordId: req.params.id,
+            action: "DELETE_PASSWORD",
+        });
 
         res.json({ message: "Entry deleted" });
 

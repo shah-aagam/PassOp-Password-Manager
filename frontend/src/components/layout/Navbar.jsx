@@ -9,7 +9,6 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 glass">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-        {/* Logo */}
         <Link
           to="/"
           className="text-2xl font-bold"
@@ -36,6 +35,10 @@ export default function Navbar() {
           <div className="flex gap-4 items-center">
             <Link to="/dashboard">
               <Button variant="ghost">Vault</Button>
+            </Link>
+
+            <Link to="/security">
+              <Button variant="ghost">Security</Button>
             </Link>
 
             <Button

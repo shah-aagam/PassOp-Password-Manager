@@ -14,6 +14,7 @@ import { Eye, EyeOff, Copy, Trash2, Edit } from "lucide-react";
 import axios from "@/utils/axiosInstance";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import EditPasswordDialog from "@/components/passwords/EditPasswordDialog";
+import AuditDialog from "../audit/AuditDialog";
 
 function PasswordCard({ item, onUpdated }) {
   const [password, setPassword] = useState(null);
@@ -21,6 +22,7 @@ function PasswordCard({ item, onUpdated }) {
   const [showAuth, setShowAuth] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [showAudit , setShowAudit] = useState(false);
 
   const isUrl = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(item.site);
   
@@ -49,20 +51,19 @@ function PasswordCard({ item, onUpdated }) {
     onUpdated();
   };
 
-  const copyPassword = async () => {
-    let text = password;
-    if (!text) text = await fetchDecryptedPassword();
+const copyPassword = async () => {
+  const res = await axios.post(`/password/copy/${item._id}`);
 
-    await navigator.clipboard.writeText(text);
-    alert("Password copied. Clipboard history may retain this.");
+  await navigator.clipboard.writeText(res.data.password);
+  alert("Password copied. Clipboard will clear automatically.");
 
-    setTimeout(async () => {
-      const current = await navigator.clipboard.readText();
-      if (current === text) {
-        await navigator.clipboard.writeText("");
-      }
-    }, 20000);
-  };
+  setTimeout(async () => {
+    const current = await navigator.clipboard.readText();
+    if (current === res.data.password) {
+      await navigator.clipboard.writeText("");
+    }
+  }, 20000);
+};
 
   const requestAction = (action) => {
     setPendingAction(action);
@@ -134,7 +135,24 @@ function PasswordCard({ item, onUpdated }) {
         >
           <Trash2 size={18} />
         </button>
+
+        <button
+          title="View activity"
+          onClick={() => setShowAudit((v) => !v)}
+          className="hover:text-violet-400"
+        >
+          📜
+        </button>
+
       </div>
+
+      <AuditDialog
+        open={showAudit}
+        onClose={() => setShowAudit(false)}
+        passwordId={item._id}
+        site={item.site}
+      />
+
 
 
       <EditPasswordDialog

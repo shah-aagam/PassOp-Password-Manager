@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 
 import userRoutes from "./routes/userRoutes.js"
 import passwordRoutes from "./routes/passwordRoutes.js"
+import auditRoutes from "./routes/auditRoutes.js"
 
 const app = express();
 const PORT = process.env.PORT || 5000 ;
@@ -38,6 +39,8 @@ app.get('/' , (req , res) => {
 app.use('/user' , userRoutes);
 
 app.use('/password' , passwordRoutes);
+
+app.use('/audit' , auditRoutes);
 
 
 app.listen(PORT , () => {

@@ -1,46 +1,50 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-const IDLE_TIME = 5 * 60 * 1000; // 5 minutes
+const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 export default function useVaultLock() {
   const [locked, setLocked] = useState(false);
-  const timerRef = useRef(null);
+  const [lastActivity, setLastActivity] = useState(Date.now());
 
-  const resetTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+  const lockVault = useCallback(() => {
+    setLocked(true);
+  }, []);
 
-    timerRef.current = setTimeout(() => {
-      setLocked(true);
-    }, IDLE_TIME);
-  };
+  const unlockVault = useCallback(() => {
+    setLocked(false);
+    setLastActivity(Date.now());
+  }, []);
 
+  // Track activity
   useEffect(() => {
-    const events = ["mousemove", "keydown", "click", "scroll"];
+    const activity = () => setLastActivity(Date.now());
 
-    const handleActivity = () => {
-      if (!locked) resetTimer();
-    };
-
-    events.forEach((e) => window.addEventListener(e, handleActivity));
-
-    resetTimer();
+    window.addEventListener("mousemove", activity);
+    window.addEventListener("keydown", activity);
+    window.addEventListener("click", activity);
 
     return () => {
-      events.forEach((e) => window.removeEventListener(e, handleActivity));
-      clearTimeout(timerRef.current);
+      window.removeEventListener("mousemove", activity);
+      window.removeEventListener("keydown", activity);
+      window.removeEventListener("click", activity);
     };
-  }, [locked]);
+  }, []);
 
-  const unlockVault = () => {
-    setLocked(false);
-    resetTimer();
+  // Auto-lock
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > IDLE_TIMEOUT) {
+        setLocked(true);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastActivity]);
+
+  return {
+    locked,
+    lockVault,
+    unlockVault,
   };
-
-  const lockVault = () => {
-    setLocked(true);
-  };
-
-  return { locked, unlockVault, lockVault };
 }
+
