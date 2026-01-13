@@ -41,6 +41,10 @@ export default function Navbar() {
               <Button variant="ghost">Security</Button>
             </Link>
 
+            <Link to="/settings">
+              <Button variant="ghost">Settings</Button>
+            </Link>
+
             <Button
               variant="outline"
               onClick={logout}

@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import axios from "@/utils/axiosInstance";
+import useAuth from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
 export default function Security() {
   const [logs, setLogs] = useState([]);
 
+    const { isAuthenticated } = useAuth();
+
   useEffect(() => {
     axios.get("/audit").then((res) => setLogs(res.data));
   }, []);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-10">

@@ -59,7 +59,7 @@ export default function EditPasswordDialog({ open, onClose, item, onUpdated }) {
             onChange={e => setUsername(e.target.value)} 
           />
 
-          {/* Password Input with Toggle */}
+
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}

@@ -7,6 +7,8 @@ import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Security from "./pages/Security";
+import Settings from "./pages/Settings";
+
 
 const App = () => {
   return (
@@ -17,8 +19,6 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/security" element={<Security />} />
-
 
         {/* Protected */}
         <Route
@@ -26,6 +26,26 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        
+        <Route
+          path="/security"
+          element={
+            <ProtectedRoute>
+              <Security />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />

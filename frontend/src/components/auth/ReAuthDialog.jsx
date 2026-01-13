@@ -6,44 +6,86 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState , useEffect } from "react";
+import axios from "@/utils/axiosInstance";
 
-export default function ReAuthDialog({ open, onClose, onSuccess }) {
+export default function ReAuthDialog({ open, onSuccess }) {
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const confirm = () => {
-    if (!password) {
-      alert("Enter your password");
+  useEffect(() => {
+    if (!open) {
+        setPassword("");
+        setError("");
+    }
+  }, [open]);
+
+  const confirm = async () => {
+    if (!password.trim()) {
+      setError("Enter your password");
       return;
     }
 
-    // 🔐 For now assume correct (later verify via API)
-    onSuccess();
-    setPassword("");
-    onClose();
+    try {
+      setLoading(true);
+      setError("");
+
+      await axios.post("/user/verify-password", { password });
+
+      onSuccess();
+      setPassword("");
+    } catch (err) {
+      setError("Incorrect password");
+    } finally {
+      setLoading(false);
+    }
   };
 
+
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="glass">
+    <Dialog open={open}>
+      <DialogContent
+        className="glass"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle>Unlock Your vault</DialogTitle>
+          <DialogTitle>Unlock your vault</DialogTitle>
           <p className="text-xs text-zinc-400">
-            For your security, please confirm your password.
+            Confirm your password to continue.
           </p>
         </DialogHeader>
 
-        <Input
-          type="password"
-          placeholder="Account password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="bg-white/5 border-white/20 placeholder:text-zinc-400"
-        />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            confirm();
+          }}
+          className="space-y-4"
+        >
+          <Input
+            autoFocus
+            type="password"
+            placeholder="Account password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="text-xs placeholder:text-zinc-500"
+          />
 
-        <Button onClick={confirm} className="bg-violet-600">
-          Confirm
-        </Button>
+          {error && (
+            <p className="text-sm text-red-400">{error}</p>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-violet-600"
+          >
+            {loading ? "Verifying…" : "Unlock"}
+          </Button>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../model/userModel.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -46,5 +47,32 @@ router.post("/login", async (req, res) => {
         res.status(500).json({ message: "Server error", err });
     }
 });
+
+// VERIFY
+router.post("/verify-password", authMiddleware, async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password required" });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 export default router;

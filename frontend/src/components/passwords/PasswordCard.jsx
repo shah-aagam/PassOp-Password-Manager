@@ -167,19 +167,27 @@ const copyPassword = async () => {
         open={showAuth}
         onClose={() => setShowAuth(false)}
         onSuccess={async () => {
-          if (pendingAction === "view") {
-            await fetchDecryptedPassword();
+          try {
+            if (pendingAction === "view") {
+              await fetchDecryptedPassword();
+            }
+
+            if (pendingAction === "copy") {
+              await copyPassword();
+            }
+
+            if (pendingAction === "edit") {
+              setShowEdit(true);
+            }
+
+            if (pendingAction === "delete") {
+              await confirmDelete();
+            }
+          } finally {
+            // ALWAYS close dialog
+            setShowAuth(false);
+            setPendingAction(null);
           }
-          if (pendingAction === "copy") {
-            await copyPassword();
-          }
-          if (pendingAction === "edit") {
-            setShowEdit(true);
-          }
-          if (pendingAction === "delete") {
-            await confirmDelete();
-          }
-          setPendingAction(null);
         }}
       />
     </motion.div>
