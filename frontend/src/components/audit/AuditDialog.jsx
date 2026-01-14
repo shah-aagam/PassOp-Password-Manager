@@ -11,7 +11,7 @@ export default function AuditDialog({ open, onClose, passwordId, site }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="glass max-w-md">
         <DialogHeader>
-          <DialogTitle>Security activity — {site}</DialogTitle>
+          <DialogTitle>Activity — {site}</DialogTitle>
         </DialogHeader>
 
         <AuditTimeline passwordId={passwordId} />

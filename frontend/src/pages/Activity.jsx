@@ -3,7 +3,7 @@ import axios from "@/utils/axiosInstance";
 import useAuth from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
-export default function Security() {
+export default function Activity() {
   const [logs, setLogs] = useState([]);
 
     const { isAuthenticated } = useAuth();
@@ -18,7 +18,7 @@ export default function Security() {
 
   return (
     <div className="max-w-4xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Security Activity</h1>
+      <h1 className="text-3xl font-bold mb-6">Activity</h1>
 
       <div className="space-y-4">
         {logs.map((log) => (

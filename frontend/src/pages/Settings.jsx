@@ -47,7 +47,7 @@ export default function Settings() {
           Settings
         </motion.h1>
 
-        <Section title="Security" desc="Control how your vault is protected">
+        <Section title="Activity" desc="Control how your vault is protected">
 
           <SettingRow
             title="Auto-lock vault"
@@ -105,10 +105,10 @@ export default function Settings() {
           </SettingRow>
 
           <SettingRow
-            title="Security activity"
+            title="Activity"
             desc="View when your passwords were accessed"
           >
-            <Button variant="outline" onClick={() => navigate("/security")}>
+            <Button variant="outline" onClick={() => navigate("/activity")}>
               View logs
             </Button>
           </SettingRow>

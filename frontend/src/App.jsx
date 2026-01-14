@@ -6,7 +6,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Security from "./pages/Security";
+import Activity from "./pages/Activity";
 import Settings from "./pages/Settings";
 
 
@@ -32,10 +32,10 @@ const App = () => {
         
         
         <Route
-          path="/security"
+          path="/activity"
           element={
             <ProtectedRoute>
-              <Security />
+              <Activity />
             </ProtectedRoute>
           }
         />

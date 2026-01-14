@@ -22,6 +22,7 @@ export default function Login() {
       });
 
       localStorage.setItem("token", res.data.token);
+      localStorage.removeItem("vaultLocked");
 
       navigate("/dashboard", { replace: true });
 

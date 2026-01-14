@@ -37,8 +37,8 @@ export default function Navbar() {
               <Button variant="ghost">Vault</Button>
             </Link>
 
-            <Link to="/security">
-              <Button variant="ghost">Security</Button>
+            <Link to="/activity">
+              <Button variant="ghost">Activity</Button>
             </Link>
 
             <Link to="/settings">
