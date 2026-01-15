@@ -30,7 +30,6 @@ const App = () => {
           }
         />
         
-        
         <Route
           path="/activity"
           element={
@@ -39,7 +38,6 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/settings"

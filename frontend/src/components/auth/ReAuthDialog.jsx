@@ -28,8 +28,15 @@ export default function ReAuthDialog({ open, onSuccess }) {
     }
   }, [open]);
 
+  const forceLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("vaultLocked");
+    window.location.href = "/login";
+  };
+
+
   const confirm = async () => {
-    if (!password.trim() || loading || attempts >= MAX_ATTEMPTS) return;
+    if (!password.trim() || loading) return;
 
     try {
       setLoading(true);
@@ -39,21 +46,32 @@ export default function ReAuthDialog({ open, onSuccess }) {
 
       onSuccess();
     } catch {
-      setAttempts((a) => a + 1);
-      setError("Incorrect password");
-      setShake(true);
-      setTimeout(() => setShake(false), 400);
+      setAttempts((prev) => {
+        const next = prev + 1;
+
+        if (next >= MAX_ATTEMPTS) {
+          alert("Too many incorrect attempts. Please log in again.");
+          forceLogout();
+        } else {
+          setError("Incorrect password");
+          setShake(true);
+          setTimeout(() => setShake(false), 400);
+        }
+
+        return next;
+      });
     } finally {
       setLoading(false);
     }
   };
+
 
   const lockedOut = attempts >= MAX_ATTEMPTS;
 
   return (
     <Dialog open={open}>
       <DialogContent
-        className="glass"
+        className="glass [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >

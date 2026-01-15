@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import axios from "@/utils/axiosInstance";
-import useAuth from "@/hooks/useAuth";
+import {useAuth} from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
 
 export default function Activity() {
   const [logs, setLogs] = useState([]);
 
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated , authReady } = useAuth();
 
   useEffect(() => {
     axios.get("/audit").then((res) => setLogs(res.data));
   }, []);
+
+  if (!authReady) {
+    return null; // or loading spinner
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

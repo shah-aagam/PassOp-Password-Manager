@@ -1,11 +1,14 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import useAuth from "@/hooks/useAuth";
+import { useAuth} from "@/context/AuthContext";
 
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, authReady } = useAuth();
+
+  if (!authReady) return null;
+
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 

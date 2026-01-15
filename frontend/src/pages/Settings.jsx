@@ -4,18 +4,18 @@ import useVaultLock from "@/hooks/useVaultLock";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import useAuth from "@/hooks/useAuth";
+import {useAuth} from "@/context/AuthContext";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { lockVault } = useVaultLock();
 
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, authReady } = useAuth();
 
   const [showReauth, setShowReauth] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [autoLock, setAutoLock] = useState(
-    localStorage.getItem("autoLock") || "5"
+    localStorage.getItem("autoLock") || "5" 
   );
 
   const onAuthSuccess = () => {
@@ -31,9 +31,11 @@ export default function Settings() {
     setPendingAction(null);
   };
 
+  if (!authReady) return null;
+
   if (!isAuthenticated) {
-  return <Navigate to="/login" replace />;
-}
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="min-h-screen px-6 py-10">

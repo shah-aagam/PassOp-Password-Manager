@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "../utils/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     try {
@@ -21,8 +24,9 @@ export default function Login() {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.removeItem("vaultLocked");
+      login(res.data.token);
+      // localStorage.setItem("token", res.data.token);
+      // localStorage.removeItem("vaultLocked");
 
       navigate("/dashboard", { replace: true });
 
