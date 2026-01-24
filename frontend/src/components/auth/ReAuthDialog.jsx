@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "@/utils/axiosInstance";
+import { toast } from 'react-toastify';
 
 const MAX_ATTEMPTS = 3;
 
@@ -50,8 +51,14 @@ export default function ReAuthDialog({ open, onSuccess }) {
         const next = prev + 1;
 
         if (next >= MAX_ATTEMPTS) {
-          alert("Too many incorrect attempts. Please log in again.");
-          forceLogout();
+          toast.error("Too many incorrect attempts. Logging out...", {
+            position: "top-right",
+            autoClose: 3000, 
+            hideProgressBar: false, 
+            pauseOnHover: false,
+            onClose: () => forceLogout(),
+          });
+
         } else {
           setError("Incorrect password");
           setShake(true);

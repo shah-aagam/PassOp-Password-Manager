@@ -15,6 +15,7 @@ import axios from "@/utils/axiosInstance";
 import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import EditPasswordDialog from "@/components/passwords/EditPasswordDialog";
 import AuditDialog from "../audit/AuditDialog";
+import { toast } from 'react-toastify';
 
 function PasswordCard({ item, onUpdated }) {
   const [password, setPassword] = useState(null);
@@ -55,7 +56,17 @@ const copyPassword = async () => {
   const res = await axios.post(`/password/copy/${item._id}`);
 
   await navigator.clipboard.writeText(res.data.password);
-  alert("Password copied. Clipboard will clear automatically.");
+  toast.success("Password copied", {
+    description: "Clipboard will clear automatically",
+  }, {
+    position: "top-right",
+    autoClose: 3000, // Standard 5 seconds
+    hideProgressBar: false,
+    closeOnClick: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored", 
+  });
 
   setTimeout(async () => {
     const current = await navigator.clipboard.readText();

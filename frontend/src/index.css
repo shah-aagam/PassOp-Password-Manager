@@ -5,7 +5,20 @@
 @layer base {
   :root {
     --radius: 14px;
+    
+        /* Success - Using a shade that matches your purple accents */
+    --toastify-color-success: #7c3aed; 
+    
+    /* Error - A muted, deep red that isn't too 'neon' */
+    --toastify-color-error: #640505;
   }
+
+/* Optional: Make the toast font match your app (Inter/Satoshi/etc) */
+.Toastify__toast {
+  border-radius: 8px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
   body {
     @apply bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100;

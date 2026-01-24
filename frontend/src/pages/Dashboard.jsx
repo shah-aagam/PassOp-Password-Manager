@@ -77,7 +77,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen px-6 py-10">
+    <div className="h-full px-6 py-10">
       <div className="max-w-7xl mx-auto">
 
         <motion.div

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance.js";
 import { useState } from "react";
+import { toast } from 'react-toastify';
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -17,7 +18,15 @@ export default function Register() {
     try {
       setLoading(true);
       if (!name || !email || !password) {
-        alert("All fields are required");
+        toast.error("All fields are required", {
+          position: "top-right",
+          autoClose: 3000, 
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored", 
+        });
         return;
       }
 
@@ -29,7 +38,15 @@ export default function Register() {
 
       navigate("/login");
     } catch (err) {
-      alert(err);
+      toast.error(err?.response?.data?.message || err.message || "An error occurred", {
+        position: "top-right",
+        autoClose: 3000, 
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored", 
+      });
     } finally {
       setLoading(false);
     }

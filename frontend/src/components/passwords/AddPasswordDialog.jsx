@@ -12,6 +12,7 @@ import axios from "@/utils/axiosInstance";
 import { getPasswordStrength, strengthLabel } from "@/utils/passwordStrength";
 import { generatePassword } from "@/utils/passwordGenerator";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
 
 
 export default function AddPasswordDialog({ onPasswordAdded }) {
@@ -31,7 +32,15 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
 
   const handleSave = async () => {
     if (!site || !username || !password) {
-      alert("All fields are required");
+      toast.error("All fields are required", {
+        position: "top-right",
+        autoClose: 3000, // Standard 5 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored", 
+      });
       return;
     }
 
@@ -56,7 +65,15 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
 
     } catch (err) {
       console.error(err);
-      alert("Failed to save password");
+      toast.error(err?.response?.data?.message || err.message || "An error occurred", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored", 
+      });
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-toastify';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,6 +19,18 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       setLoading(true);
+      if( !email || !password ){
+        toast.error("All fields are required", {
+          position: "top-right",
+          autoClose: 3000, 
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored", 
+        });
+        return ;
+      }
 
       const res = await axios.post("/user/login", {
         email,
@@ -27,18 +40,26 @@ export default function Login() {
       login(res.data.token);
       // localStorage.setItem("token", res.data.token);
       // localStorage.removeItem("vaultLocked");
-
+      toast.success("Login successfull");
       navigate("/dashboard", { replace: true });
 
     } catch (err) {
-      alert("Invalid credentials");
+      toast.error("Invalid credentials", {
+        position: "top-right",
+        autoClose: 3000, 
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored", 
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center">
+    <div className="relative h-full flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
