@@ -5,6 +5,7 @@ import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import {useAuth} from "@/context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -78,6 +79,10 @@ export default function Settings() {
                 variant="outline"
                 onClick={() => {
                     lockVault(); 
+                    toast.success("Vault locked successfully!", {
+                      theme: "dark",
+                      position: "top-right",
+                    });
                 }}
                 >
                 Lock now

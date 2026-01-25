@@ -30,10 +30,21 @@ const getActionDetails = (action) => {
 
 export default function Activity() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const { isAuthenticated, authReady } = useAuth();
 
   useEffect(() => {
-    axios.get("/audit").then((res) => setLogs(res.data));
+    const fetchLogs = async () => {
+      try {
+        const res = await axios.get("/audit");
+        setLogs(res.data);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
   }, []);
 
   if (!authReady) return null;
@@ -53,7 +64,28 @@ export default function Activity() {
         </header>
 
         <div className="space-y-3">
-          {logs.map((log, index) => {
+
+          {loading && (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="glass rounded-xl px-6 py-4 animate-pulse"
+                >
+                  <div className="h-4 bg-white/10 rounded w-1/3 mb-2" />
+                  <div className="h-3 bg-white/5 rounded w-1/4" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && logs.length === 0 && (
+            <div className="text-center py-20 glass rounded-2xl border-dashed border-2 border-white/5">
+              <p className="text-zinc-500">No recent activity found.</p>
+            </div>
+          )}
+
+          {!loading && logs.map((log, index) => {
             const { icon, color, bg } = getActionDetails(log.action);
             
             return (
@@ -94,11 +126,11 @@ export default function Activity() {
             );
           })}
           
-          {logs.length === 0 && (
+          {/* {logs.length === 0 && (
             <div className="text-center py-20 glass rounded-2xl border-dashed border-2 border-white/5">
               <p className="text-zinc-500">No recent activity found.</p>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
