@@ -37,7 +37,15 @@ export default function ReAuthDialog({ open, onSuccess }) {
 
 
   const confirm = async () => {
-    if (!password.trim() || loading) return;
+    if (!password.trim() || loading){ 
+      toast.error("All fields are required", {
+        position: "top-right",
+        autoClose: 3000, 
+        hideProgressBar: false, 
+        pauseOnHover: false,
+      });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -119,7 +127,7 @@ export default function ReAuthDialog({ open, onSuccess }) {
           <Button
             type="submit"
             disabled={loading || lockedOut}
-            className="w-full bg-violet-600"
+            className="w-full bg-violet-600 hover:bg-violet-700"
           >
             {loading ? "Verifying…" : "Unlock"}
           </Button>

@@ -18,7 +18,7 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-instance.interceptors.response.use(        // immediate logout on token expiry
+instance.interceptors.response.use(      // immediate logout on token expiry
   (res) => res,
   (err) => {
     if (err.response?.status === 401 && !err.config.url.includes("verify-password")) {

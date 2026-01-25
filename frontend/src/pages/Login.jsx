@@ -59,7 +59,8 @@ export default function Login() {
   };
 
   return (
-    <div className="relative h-full flex items-center justify-center">
+    <div className="relative flex-grow h-full flex items-center justify-center px-6">
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl opacity-50" />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

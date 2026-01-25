@@ -52,15 +52,15 @@ export default function Dashboard() {
 
   if (locked) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="glass rounded-2xl p-10 text-center max-w-sm w-full">
+      <div className="flex-grow h-full flex items-center justify-center px-6">
+        <div className="glass rounded-2xl p-10 text-center max-w-sm w-full relative z-10">
           <h2 className="text-2xl font-semibold">Vault locked</h2>
           <p className="text-zinc-400 mt-2">
             Your vault was locked due to inactivity.
           </p>
 
           <Button
-            className="mt-6 bg-violet-600 hover:bg-violet-600 glow"
+            className="mt-6 bg-violet-600 hover:bg-violet-700 glow"
             onClick={() => setShowUnlock(true)}
           >
             Unlock vault
@@ -72,6 +72,8 @@ export default function Dashboard() {
             onSuccess={unlockVault}
           />
         </div>
+
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl opacity-50" />
       </div>
     );
   }
