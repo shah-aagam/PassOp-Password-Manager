@@ -177,6 +177,8 @@ router.delete("/delete/:id", authMiddleware, async (req, res) => {
 });
 
 
+
+////  EXTENSION USED ROUTES
 router.get("/by-domain", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -200,6 +202,40 @@ router.get("/by-domain", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch credentials" });
   }
 });
+
+// DECRYPT FOR EXTENSION AUTOFILL
+router.post("/decrypt", authMiddleware, async (req, res) => {
+  try {
+    const { credentialId } = req.body;
+
+    const entry = await Password.findOne({
+      _id: credentialId,
+      userId: req.user.userId,
+      deleted: false,
+    });
+
+    if (!entry) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const decryptedPassword = decrypt(entry.passwordEncrypted);
+
+    await logAudit({
+      userId: req.user.userId,
+      passwordId: entry._id,
+      action: "AUTOFILL_PASSWORD",
+    });
+
+    res.json({
+      username: entry.username,
+      password: decryptedPassword,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Decryption failed" });
+  }
+});
+
 
 
 export default router;
