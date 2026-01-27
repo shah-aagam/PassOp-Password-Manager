@@ -18,6 +18,12 @@ export default function useAuth() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    window.postMessage(
+      {
+        type: "PASSOP_LOGOUT",
+      },
+      window.location.origin
+    );
     setIsAuthenticated(false);
     window.location.href = "/login";
   };

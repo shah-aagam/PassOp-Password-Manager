@@ -40,6 +40,16 @@ export default function Login() {
       login(res.data.token);
       // localStorage.setItem("token", res.data.token);
       // localStorage.removeItem("vaultLocked");
+
+      // 🔑 SEND JWT TO EXTENSION
+      window.postMessage(
+        {
+          type: "PASSOP_JWT",
+          token: res.data.token,
+        },
+        window.location.origin
+      );
+      
       toast.success("Login successfull");
       navigate("/dashboard", { replace: true });
 
