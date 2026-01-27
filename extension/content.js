@@ -80,11 +80,11 @@ function detectLoginFields() {
 
     console.log("✅ PassOP: Login form READY");
 
-    
+
     chrome.runtime.sendMessage(
       {
         type: "FETCH_CREDENTIALS",
-        domain: window.location.hostname,
+        domain: window.location.hostname.replace(/^www\./, ""),
       },
       (response) => {
         if (response?.error) {
@@ -98,6 +98,7 @@ function detectLoginFields() {
             response.credentials,
           );
         } else {
+          console.log(window.location.hostname.replace(/^www\./, ""));
           console.log("🆕 PassOP: No saved credentials for this site");
         }
       },
