@@ -2,7 +2,6 @@ console.log("PassOP content script loaded");
 
 // Listen for messages from website
 window.addEventListener("message", (event) => {
-  // Security check
   if (event.source !== window) return;
 
   if (event.data?.type === "PASSOP_JWT") {
@@ -11,4 +10,11 @@ window.addEventListener("message", (event) => {
       token: event.data.token
     });
   }
+
+  if (event.data?.type === "PASSOP_LOGOUT") {
+    chrome.runtime.sendMessage({
+      type: "CLEAR_TOKEN"
+    });
+  }
 });
+
