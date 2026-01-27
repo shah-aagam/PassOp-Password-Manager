@@ -80,7 +80,6 @@ function detectLoginFields() {
 
     console.log("✅ PassOP: Login form READY");
 
-
     chrome.runtime.sendMessage(
       {
         type: "FETCH_CREDENTIALS",
@@ -93,18 +92,47 @@ function detectLoginFields() {
         }
 
         if (response?.credentials?.length > 0) {
-          console.log(
-            "🔐 PassOP: Saved credentials found",
-            response.credentials,
+          const cred = response.credentials[0];
+
+          const shouldFill = confirm(
+            `PassOP: Autofill credentials for ${cred.site}?`,
           );
+
+          if (shouldFill) {
+            chrome.runtime.sendMessage(
+              {
+                type: "DECRYPT_AND_FILL",
+                credentialId: cred._id,
+              },
+              (fillResponse) => {
+                if (fillResponse?.error) {
+                  console.log("❌ PassOP:", fillResponse.error);
+                  return;
+                }
+
+                if (fillResponse?.username && fillResponse?.password) {
+                  usernameField.value = fillResponse.username;
+                  passwordField.value = fillResponse.password;
+
+                  // trigger input events (important for React sites)
+                  usernameField.dispatchEvent(
+                    new Event("input", { bubbles: true }),
+                  );
+                  passwordField.dispatchEvent(
+                    new Event("input", { bubbles: true }),
+                  );
+
+                  console.log("✅ PassOP: Autofill complete");
+                }
+              },
+            );
+          }
         } else {
           console.log(window.location.hostname.replace(/^www\./, ""));
           console.log("🆕 PassOP: No saved credentials for this site");
         }
       },
     );
-
-
   }
 }
 
