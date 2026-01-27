@@ -8,6 +8,23 @@ import { logAudit } from "../utils/auditLogger.js";
 const router = express.Router();
 
 
+const normalizeSite = (input) => {
+    try {
+        let urlString = input.trim().toLowerCase();
+        // Add protocol if missing so URL constructor works
+        if (!/^https?:\/\//i.test(urlString)) {
+            urlString = 'https://' + urlString;
+        }
+        const url = new URL(urlString);
+        // Returns "google.com" from "https://www.google.com/search"
+        return url.hostname.replace(/^www\./i, "");
+    } catch (err) {
+        // Fallback: if it's not a valid URL, just return lowercase trimmed string
+        return input.trim().toLowerCase().replace(/^www\./i, "");
+    }
+};
+
+
 // CREATE PASSWORD
 router.post("/create", authMiddleware, async (req, res) => {
     try {
@@ -162,22 +179,27 @@ router.delete("/delete/:id", authMiddleware, async (req, res) => {
 
 router.get("/by-domain", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { domain } = req.query;
 
     if (!domain) {
       return res.status(400).json({ message: "Domain is required" });
     }
 
+    const normalizedDomain = normalizeSite(domain);
+
     const passwords = await Password.find({
-      user: userId,
-      domain,
-    }).select("username password");
+      userId: userId,        
+      site: normalizedDomain, 
+      deleted: false           
+    }).select("username passwordEncrypted site");
 
     res.json(passwords);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Failed to fetch credentials" });
   }
 });
+
 
 export default router;
