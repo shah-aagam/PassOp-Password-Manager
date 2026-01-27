@@ -159,4 +159,25 @@ router.delete("/delete/:id", authMiddleware, async (req, res) => {
     }
 });
 
+
+router.get("/by-domain", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { domain } = req.query;
+
+    if (!domain) {
+      return res.status(400).json({ message: "Domain is required" });
+    }
+
+    const passwords = await Password.find({
+      user: userId,
+      domain,
+    }).select("username password");
+
+    res.json(passwords);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch credentials" });
+  }
+});
+
 export default router;
