@@ -15,10 +15,9 @@
 
   "content_scripts": [
     {
-      "matches": [
-        "https://pass-op-password-manager-aagam.vercel.app/*"
-      ],
-      "js": ["content.js"]
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+       "run_at": "document_idle"
     }
   ]
 }
