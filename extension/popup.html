@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PassOP</title>
+    <style>
+      body {
+        width: 300px;
+        font-family:
+          system-ui,
+          -apple-system;
+        padding: 12px;
+      }
+      h3 {
+        margin: 0 0 6px 0;
+      }
+      button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 12px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h3>PassOP</h3>
+
+    <div id="loggedOut">
+      <p>You are not logged in</p>
+      <button id="loginBtn">Login</button>
+    </div>
+
+    <div id="loggedIn" style="display: none">
+      <p>✅ Logged in</p>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

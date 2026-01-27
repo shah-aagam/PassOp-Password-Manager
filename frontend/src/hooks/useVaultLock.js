@@ -4,8 +4,7 @@ export default function useVaultLock() {
   const token = localStorage.getItem("token");
 
   const [locked, setLocked] = useState(() => {
-    //  Vault lock only applies if user is logged in
-    if (!token) return false;
+    if (!token) return false;    //  Vault lock only applies if user is logged in                      
     return localStorage.getItem("vaultLocked") === "true";
   });
 
@@ -29,7 +28,7 @@ export default function useVaultLock() {
     }
   }, [token]);
 
-  /* ⏱ AUTO-LOCK (ONLY WHEN LOGGED IN) */
+  /* AUTO-LOCK (ONLY WHEN LOGGED IN) */
   useEffect(() => {
     if (!token) return;
 

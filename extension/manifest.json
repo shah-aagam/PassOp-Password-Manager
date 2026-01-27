@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "PassOP Password Manager",
+  "version": "0.1.0",
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "permissions": ["storage", "tabs"],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pass-op-password-manager-aagam.vercel.app/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}
