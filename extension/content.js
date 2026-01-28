@@ -10,7 +10,7 @@
 
 console.log(" PassOP content script loaded");
 
-/* ---------------- JWT SYNC ---------------- */
+
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
 
@@ -25,7 +25,7 @@ window.addEventListener("message", (event) => {
   }
 });
 
-/* ---------------- CONFIG ---------------- */
+
 const USERNAME_KEYWORDS = [
   "email",
   "username",
@@ -58,8 +58,8 @@ let initialAutofillShown = false;
 
 let autofillDismissedByUser = false;
 
-/* ---------------- UTIL ---------------- */
 
+/* ---------------- UTIL ---------------- */
 function attachOutsideClickDismiss(popupRef, allowedElements = []) {
   const onClick = (e) => {
     const clickedInsideAllowed = allowedElements.some(
@@ -74,7 +74,7 @@ function attachOutsideClickDismiss(popupRef, allowedElements = []) {
       popupRef.remove();
       autofillUI = null;
 
-      // IMPORTANT: do NOT mark as user dismissed
+
       document.removeEventListener("mousedown", onClick);
     }
   };
@@ -104,17 +104,14 @@ function attachAutofillFocusListeners() {
   const maybeShow = () => {
     if (autofillUI) return;
 
-    // ONLY show if field is empty
     if (usernameField?.value === "" && passwordField?.value === "") {
       showAutofillUI();
     }
   };
 
-  // focus (keyboard / tab)
   usernameField?.addEventListener("focus", maybeShow);
   passwordField?.addEventListener("focus", maybeShow);
 
-  //  click (mouse re-click on already focused field)
   usernameField?.addEventListener("click", maybeShow);
   passwordField?.addEventListener("click", maybeShow);
 }
@@ -138,182 +135,105 @@ function createShadowPopup(html) {
 
   shadow.innerHTML = `
     <style>
-      :host {
-        all: initial;
-      }
-
-      * {
-        box-sizing: border-box;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      }
-
-      .card {
-        width: 300px;
-        background: #0f0f1a;
-        color: white;
-        padding: 16px;
-        border-radius: 16px;
-        box-shadow:
-          0 20px 40px rgba(0,0,0,.55),
-          0 0 0 1px rgba(124,58,237,.25);
-        animation: pop 0.15s ease-out;
-      }
-
-      @keyframes pop {
-        from {
-          transform: scale(.96);
-          opacity: 0;
-        }
-        to {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
-
-      .brand {
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 8px;
-      }
-
-      .brand span {
-        color: #a78bfa;
-      }
+      :host { all: initial; }
+      * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
       .subtitle {
-        font-size: 13px;
+        font-size: 12px;
         color: #c7c7ff;
-        margin-bottom: 12px;
-      }
-
-      .box {
-        background: #1a1a2e;
-        padding: 10px;
-        border-radius: 12px;
-        margin-bottom: 14px;
-        font-size: 13px;
-      }
-
-      .label {
-        font-size: 11px;
-        color: #9ca3af;
-        margin-bottom: 2px;
+        margin-bottom: 8px;
       }
 
       .actions {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
+        margin-top: 12px;
       }
 
       button {
         all: unset;
         cursor: pointer;
-        padding: 8px 14px;
-        border-radius: 10px;
-        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
         font-weight: 500;
+        transition: background 0.2s;
       }
 
-      .ghost {
-        color: #9ca3af;
-      }
+      .ghost { color: #9ca3af; }
+      .ghost:hover { color: white; background: rgba(255,255,255,0.05); }
 
-      .primary {
-        background: #7c3aed;
-        color: white;
-      }
-
-      .primary:hover {
-        background: #6d28d9;
-      }
-
-      .ghost:hover {
-        color: white;
-      }
+      .primary { background: #7c3aed; color: white; }
+      .primary:hover { background: #6d28d9; }
 
       .bubble-root {
         position: relative;
-        width: 300px;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
       }
 
-      /* main box */
-      .bubble {
-        background: #0f0f1a;
+      .card {
+        width: 280px;
+        background: #0f0f1a; /* Your dark theme */
+        color: white;
         border-radius: 12px;
-        box-shadow:
-          0 8px 24px rgba(0,0,0,.45),
-          0 0 0 1px rgba(124,58,237,.25);
-        overflow: hidden;
+        overflow: hidden; /* Clips the footer hover effect */
+        border: 1px solid rgba(124,58,237,.25);
+        animation: pop 0.1s ease-out;
       }
 
-      /* content area */
-      .content {
-        padding: 14px;
+      @keyframes pop {
+        from { transform: scale(.98); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
       }
 
-      /* divider like Google */
-      .divider {
-        height: 1px;
-        background: rgba(255,255,255,.08);
-      }
+      .content { padding: 16px; }
 
+      /* Footer Section (Google Style) */
       .footer {
-        all: unset;
+        background: #161625;
+        padding: 10px 16px;
+        border-top: 1px solid rgba(255,255,255,0.1);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 10px 12px;
-        margin-top: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #c7c7ff;
+        gap: 8px;
         cursor: pointer;
-        border-radius: 10px;
-        transition: background 0.15s ease, color 0.15s ease;
+        font-size: 13px;
+        color: #a78bfa;
+        transition: background 0.2s;
       }
 
-      .footer:hover {
-        background: rgba(124, 58, 237, 0.12);
-        color: white;
-      }
+      .footer:hover { background: #1e1e30; }
 
-      .footer:focus-visible {
-        outline: 2px solid rgba(124, 58, 237, 0.6);
-      }
-
-      .footer::after {
-        content: "→";
-        font-size: 14px;
-        opacity: 0.7;
-      }
-
-
+      /* The Arrow (Caret) */
       .caret {
         position: absolute;
-        width: 14px;
-        height: 14px;
+        width: 12px;
+        height: 12px;
         background: #0f0f1a;
         transform: rotate(45deg);
-        box-shadow: 0 4px 12px rgba(0,0,0,.4);
+        border: 1px solid rgba(124,58,237,.25);
+        z-index: -1;
       }
 
+      /* Position caret based on which side the popup is on */
       .bubble-root.left .caret {
-        right: -7px;
-        top: 28px;
+        right: -6px;
+        top: 20px;
+        border-left: none; border-bottom: none;
       }
 
       .bubble-root.right .caret {
-        left: -7px;
-        top: 28px;
+        left: -6px;
+        top: 20px;
+        border-right: none; border-top: none;
       }
 
-      .divider {
-        height: 1px;
-        background: rgba(255, 255, 255, 0.08);
-        margin: 8px 0;
-      }
+      /* Your internal box styling */
+      .box { background: #1a1a2e; padding: 10px; border-radius: 8px; margin: 12px 0; font-size: 13px; }
+      .label { font-size: 11px; color: #9ca3af; }
+      .brand { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+      .brand span { color: #7c3aed; }
     </style>
     ${html}
   `;
@@ -329,6 +249,7 @@ function generateStrongPassword(length = 16) {
   crypto.getRandomValues(array);
   return Array.from(array, (x) => chars[x % chars.length]).join("");
 }
+
 
 /* ---------------- FIELD DETECTION ---------------- */
 function detectFields() {
@@ -352,7 +273,11 @@ function detectFields() {
 
       if (isUsername) {
         usernameField = input;
-        console.log("👤 PassOP: Username field detected");
+        console.log(" PassOP: Username field detected");
+
+        usernameField.addEventListener("input", () => {
+          loginSignalSent = false;
+        });
       }
     }
 
@@ -364,6 +289,7 @@ function detectFields() {
     }
   }
 }
+
 
 /* ---------------- BACKEND DECISION ---------------- */
 function decideFlow() {
@@ -384,7 +310,6 @@ function decideFlow() {
 
         attachAutofillFocusListeners();
 
-        // Initial gentle suggestion (Google-style)
         if (
           !initialAutofillShown &&
           usernameField &&
@@ -462,54 +387,45 @@ function showAutofillUI() {
 
   autofillUI = createShadowPopup(`
     <div class="bubble-root">
-      <div class="bubble">
-        <div class="card">
-          <div class="brand">
-            <span>&lt;</span>Pass<span>OP/&gt;</span>
-          </div>
-
-          <div class="subtitle">
-            Use saved credentials?
-          </div>
-
+      <div class="card">
+        <div class="content">
+          <div class="brand"><span>&lt;</span>Pass<span>OP/&gt;</span></div>
+          <div style="font-size: 12px; color: #c7c7ff;">Use saved credentials?</div>
+          
           <div class="box">
             <div class="label">Username</div>
-            <div>${savedCredential.username}</div>
-
-            <div class="label" style="margin-top:6px">Password</div>
+            <div style="margin-bottom: 8px;">${savedCredential.username}</div>
+            <div class="label">Password</div>
             <div>••••••••••</div>
           </div>
 
-          <div class="actions">
-            <button class="ghost" id="no">Dismiss</button>
-            <button class="primary" id="yes">Use</button>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="no" style="color:#9ca3af; font-size:12px; cursor:pointer; background:none; border:none;">Dismiss</button>
+            <button id="yes" style="background:#7c3aed; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">Use</button>
           </div>
         </div>
-        <div class="divider"></div>
 
-        <button class="footer">
-          Manage passwords
-        </button>
+        <div class="footer" id="manage-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Manage Passwords
+        </div>
       </div>
-
       <div class="caret"></div>
     </div>
   `);
 
-  // positionUI(autofillUI, usernameField);
-  const side = positionUI(autofillUI, usernameField);
-  autofillUI.shadowRoot.querySelector(".bubble-root").classList.add(side);
-
-  attachOutsideClickDismiss(autofillUI, [usernameField, passwordField]);
-
   const shadow = autofillUI.shadowRoot;
 
-  /* ---------- FOOTER ACTION ---------- */
-  shadow.querySelector(".footer").onclick = () => {
+  const side = positionUI(autofillUI, usernameField);
+
+  autofillUI.shadowRoot.querySelector(".bubble-root").classList.add(side);
+
+  autofillUI.shadowRoot.getElementById("manage-btn").onclick = () => {
     window.open("https://pass-op-password-manager-aagam.vercel.app", "_blank");
   };
 
-  /* ---------- ACTIONS ---------- */
+  attachOutsideClickDismiss(autofillUI, [usernameField, passwordField]);
+
   shadow.getElementById("yes").onclick = () => {
     saveFlowHandledByExtension = true;
 
@@ -535,7 +451,6 @@ function showAutofillUI() {
     destroyAutofillPopup();
   };
 
-  /* ---------- DISMISS ON TYPE ---------- */
   const dismissOnType = () => {
     if (
       autofillUI &&
@@ -550,19 +465,21 @@ function showAutofillUI() {
   passwordField?.addEventListener("input", dismissOnType);
 }
 
+
 /* ---------------- SIGNUP PASSWORD GENERATOR ---------------- */
 function attachPasswordFocusListener() {
   if (passwordField.__passopBound) return;
   passwordField.__passopBound = true;
 
-  // Show generator on focus (only once)
   passwordField.addEventListener("focus", () => {
-    if (!isSignupFlow || generatedPassword) return;
+    loginSignalSent = false; 
+    if (!isSignupFlow) return;
+    if (passwordField.value.length > 0) return;
+
     generatedPassword = generateStrongPassword();
     showGeneratorPopup();
   });
 
-  // 🚨 USER STARTED TYPING → REMOVE POPUP
   const dismissOnInput = () => {
     if (generatorPopup) {
       console.log(" PassOP: User typed, dismissing password generator");
@@ -578,43 +495,35 @@ function attachPasswordFocusListener() {
 
 function showGeneratorPopup() {
   if (saveFlowHandledByExtension) return;
+
   generatorPopup = createShadowPopup(`
     <div class="bubble-root">
-      <div class="bubble">
-        <div class="card">
-          <div class="brand">
-            <span>&lt;</span>Pass<span>OP/&gt;</span>
-          </div>
+      <div class="card">
+        <div class="content">
+          <div class="brand"><span>&lt;</span>Pass<span>OP/&gt;</span></div>
+          <div class="subtitle">Use a strong generated password?</div>
 
-          <div class="subtitle">
-            Use a strong generated password?
-          </div>
-
-          <div class="box" style="word-break:break-all">
+          <div class="box" style="word-break: break-all; font-family: monospace; color: #a78bfa; border: 1px dashed rgba(167, 139, 250, 0.3);">
             ${generatedPassword}
           </div>
 
           <div class="actions">
             <button class="ghost" id="no">Dismiss</button>
-            <button class="primary" id="yes">Use</button>
+            <button class="primary" id="yes">Use Password</button>
           </div>
         </div>
-        <div class="divider"></div>
-
-        <button class="footer">
-          Manage passwords
-        </button>
       </div>
-
       <div class="caret"></div>
     </div>  
   `);
 
-  positionUI(generatorPopup, passwordField);
+  const shadow = generatorPopup.shadowRoot;
+
+
+  const side = positionUI(generatorPopup, passwordField);
+  shadow.querySelector(".bubble-root").classList.add(side);
 
   attachOutsideClickDismiss(generatorPopup, [passwordField]);
-
-  const shadow = generatorPopup.shadowRoot;
 
   shadow.getElementById("yes").onclick = () => {
     passwordField.value = generatedPassword;
@@ -624,6 +533,8 @@ function showGeneratorPopup() {
 
   shadow.getElementById("no").onclick = () => generatorPopup.remove();
 }
+
+
 
 /* ---------------- LOGIN DETECTION (FIX) ---------------- */
 function detectCredentialUsage() {
@@ -655,22 +566,26 @@ function detectCredentialUsage() {
 window.addEventListener("beforeunload", detectCredentialUsage);
 passwordField?.addEventListener("blur", detectCredentialUsage);
 
-/* ---------------- UI POSITION ---------------- */
+
 function positionUI(ui, field) {
   const rect = field.getBoundingClientRect();
-  const popupWidth = 320;
-  const gap = 12;
+  const popupWidth = 280;
+  const gap = 16;
+  let side = "left";
 
-  let left = scrollX + rect.left - popupWidth - gap;
+  let left = window.scrollX + rect.left - popupWidth - gap;
 
-  // If not enough space on the left → place on right
-  if (left < 8) {
-    left = scrollX + rect.right + gap;
+  if (left < 10) {
+    left = window.scrollX + rect.right + gap;
+    side = "right";
   }
 
-  ui.style.top = `${scrollY + rect.top}px`;
+  ui.style.top = `${window.scrollY + rect.top - 10}px`; 
   ui.style.left = `${left}px`;
+
+  return side; 
 }
+
 
 /* ---------------- INIT ---------------- */
 detectFields();
@@ -682,6 +597,7 @@ new MutationObserver(() => {
   decideFlow();
 }).observe(document.documentElement, { childList: true, subtree: true });
 
+
 /* ---------------- RESET ON FULL PAGE LOAD ---------------- */
 window.addEventListener("load", () => {
   loginSignalSent = false;
@@ -689,6 +605,7 @@ window.addEventListener("load", () => {
   logoutInProgress = false;
   autofillDismissedByUser = false;
 });
+
 
 // Final backup: Detect on form departure
 window.addEventListener("beforeunload", () =>
