@@ -8,7 +8,7 @@
  * - Detect real credential usage (SPA-safe)
  *************************************************/
 
-console.log("🔐 PassOP content script loaded");
+console.log(" PassOP content script loaded");
 
 /* ---------------- JWT SYNC ---------------- */
 window.addEventListener("message", (event) => {
@@ -70,11 +70,11 @@ function attachOutsideClickDismiss(popupRef, allowedElements = []) {
       popupRef && (popupRef === e.target || popupRef.contains(e.target));
 
     if (!clickedInsideAllowed && !clickedInsidePopup) {
-      console.log("🖱️ PassOP: Outside click → hiding popup (temporary)");
+      console.log(" PassOP: Outside click → hiding popup (temporary)");
       popupRef.remove();
       autofillUI = null;
 
-      // ⚠️ IMPORTANT: do NOT mark as user dismissed
+      // IMPORTANT: do NOT mark as user dismissed
       document.removeEventListener("mousedown", onClick);
     }
   };
@@ -104,7 +104,7 @@ function attachAutofillFocusListeners() {
   const maybeShow = () => {
     if (autofillUI) return;
 
-    // ✅ ONLY show if field is empty
+    // ONLY show if field is empty
     if (usernameField?.value === "" && passwordField?.value === "") {
       showAutofillUI();
     }
@@ -231,8 +231,90 @@ function createShadowPopup(html) {
       .ghost:hover {
         color: white;
       }
-    </style>
 
+      .bubble-root {
+        position: relative;
+        width: 300px;
+      }
+
+      /* main box */
+      .bubble {
+        background: #0f0f1a;
+        border-radius: 12px;
+        box-shadow:
+          0 8px 24px rgba(0,0,0,.45),
+          0 0 0 1px rgba(124,58,237,.25);
+        overflow: hidden;
+      }
+
+      /* content area */
+      .content {
+        padding: 14px;
+      }
+
+      /* divider like Google */
+      .divider {
+        height: 1px;
+        background: rgba(255,255,255,.08);
+      }
+
+      .footer {
+        all: unset;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #c7c7ff;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+
+      .footer:hover {
+        background: rgba(124, 58, 237, 0.12);
+        color: white;
+      }
+
+      .footer:focus-visible {
+        outline: 2px solid rgba(124, 58, 237, 0.6);
+      }
+
+      .footer::after {
+        content: "→";
+        font-size: 14px;
+        opacity: 0.7;
+      }
+
+
+      .caret {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: #0f0f1a;
+        transform: rotate(45deg);
+        box-shadow: 0 4px 12px rgba(0,0,0,.4);
+      }
+
+      .bubble-root.left .caret {
+        right: -7px;
+        top: 28px;
+      }
+
+      .bubble-root.right .caret {
+        left: -7px;
+        top: 28px;
+      }
+
+      .divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 8px 0;
+      }
+    </style>
     ${html}
   `;
 
@@ -276,7 +358,7 @@ function detectFields() {
 
     if (!passwordField && type === "password") {
       passwordField = input;
-      console.log("🔑 PassOP: Password field detected");
+      console.log(" PassOP: Password field detected");
       attachPasswordFocusListener();
       attachAutofillFocusListeners();
     }
@@ -298,11 +380,11 @@ function decideFlow() {
 
       if (res.credentials?.length) {
         savedCredential = res.credentials[0];
-        console.log("🔐 PassOP: Saved credentials found", res.credentials);
+        console.log(" PassOP: Saved credentials found", res.credentials);
 
         attachAutofillFocusListeners();
 
-        // 🌟 Initial gentle suggestion (Google-style)
+        // Initial gentle suggestion (Google-style)
         if (
           !initialAutofillShown &&
           usernameField &&
@@ -315,7 +397,7 @@ function decideFlow() {
         }
       } else {
         isSignupFlow = true;
-        console.log("🆕 PassOP: Signup flow detected");
+        console.log(" PassOP: Signup flow detected");
       }
     },
   );
@@ -329,7 +411,7 @@ function decideFlow() {
       key.toLowerCase().includes("token") ||
       key.toLowerCase().includes("auth")
     ) {
-      console.log("🔐 PassOP: Auth token stored in LocalStorage");
+      console.log(" PassOP: Auth token stored in LocalStorage");
       detectCredentialUsage("TOKEN_STORAGE");
     }
     return originalSetItem.apply(this, arguments);
@@ -348,7 +430,7 @@ function decideFlow() {
         value.toLowerCase().includes("token") ||
         value.toLowerCase().includes("auth")
       ) {
-        console.log("🍪 PassOP: Auth cookie set");
+        console.log(" PassOP: Auth cookie set");
         detectCredentialUsage("COOKIE");
       }
       originalCookie.set.call(this, value);
@@ -361,7 +443,7 @@ function decideFlow() {
 function detectPageChange() {
   if (location.href !== lastUrl) {
     lastUrl = location.href;
-    console.log("🔄 PassOP: Page changed");
+    console.log(" PassOP: Page changed");
     detectCredentialUsage("PAGE_CHANGE");
 
     // Reset detection for the new page
@@ -379,35 +461,53 @@ function showAutofillUI() {
   if (!usernameField || autofillUI) return;
 
   autofillUI = createShadowPopup(`
-    <div class="card">
-      <div class="brand">
-        <span>&lt;</span>Pass<span>OP/&gt;</span>
+    <div class="bubble-root">
+      <div class="bubble">
+        <div class="card">
+          <div class="brand">
+            <span>&lt;</span>Pass<span>OP/&gt;</span>
+          </div>
+
+          <div class="subtitle">
+            Use saved credentials?
+          </div>
+
+          <div class="box">
+            <div class="label">Username</div>
+            <div>${savedCredential.username}</div>
+
+            <div class="label" style="margin-top:6px">Password</div>
+            <div>••••••••••</div>
+          </div>
+
+          <div class="actions">
+            <button class="ghost" id="no">Dismiss</button>
+            <button class="primary" id="yes">Use</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+
+        <button class="footer">
+          Manage passwords
+        </button>
       </div>
 
-      <div class="subtitle">
-        Use saved credentials?
-      </div>
-
-      <div class="box">
-        <div class="label">Username</div>
-        <div>${savedCredential.username}</div>
-
-        <div class="label" style="margin-top:6px">Password</div>
-        <div>••••••••••</div>
-      </div>
-
-      <div class="actions">
-        <button class="ghost" id="no">Dismiss</button>
-        <button class="primary" id="yes">Use</button>
-      </div>
+      <div class="caret"></div>
     </div>
   `);
 
-  positionUI(autofillUI, usernameField);
+  // positionUI(autofillUI, usernameField);
+  const side = positionUI(autofillUI, usernameField);
+  autofillUI.shadowRoot.querySelector(".bubble-root").classList.add(side);
 
   attachOutsideClickDismiss(autofillUI, [usernameField, passwordField]);
 
   const shadow = autofillUI.shadowRoot;
+
+  /* ---------- FOOTER ACTION ---------- */
+  shadow.querySelector(".footer").onclick = () => {
+    window.open("https://pass-op-password-manager-aagam.vercel.app", "_blank");
+  };
 
   /* ---------- ACTIONS ---------- */
   shadow.getElementById("yes").onclick = () => {
@@ -430,7 +530,7 @@ function showAutofillUI() {
   };
 
   shadow.getElementById("no").onclick = () => {
-    console.log("❌ PassOP: User explicitly dismissed autofill");
+    console.log(" PassOP: User explicitly dismissed autofill");
     autofillDismissedByUser = true;
     destroyAutofillPopup();
   };
@@ -441,7 +541,7 @@ function showAutofillUI() {
       autofillUI &&
       (usernameField.value.length > 0 || passwordField?.value.length > 0)
     ) {
-      console.log("⌨️ PassOP: User typed, hiding autofill popup");
+      console.log(" PassOP: User typed, hiding autofill popup");
       destroyAutofillPopup();
     }
   };
@@ -465,7 +565,7 @@ function attachPasswordFocusListener() {
   // 🚨 USER STARTED TYPING → REMOVE POPUP
   const dismissOnInput = () => {
     if (generatorPopup) {
-      console.log("⌨️ PassOP: User typed, dismissing password generator");
+      console.log(" PassOP: User typed, dismissing password generator");
       generatorPopup.remove();
       generatorPopup = null;
     }
@@ -479,24 +579,35 @@ function attachPasswordFocusListener() {
 function showGeneratorPopup() {
   if (saveFlowHandledByExtension) return;
   generatorPopup = createShadowPopup(`
-    <div class="card">
-      <div class="brand">
-        <span>&lt;</span>Pass<span>OP/&gt;</span>
+    <div class="bubble-root">
+      <div class="bubble">
+        <div class="card">
+          <div class="brand">
+            <span>&lt;</span>Pass<span>OP/&gt;</span>
+          </div>
+
+          <div class="subtitle">
+            Use a strong generated password?
+          </div>
+
+          <div class="box" style="word-break:break-all">
+            ${generatedPassword}
+          </div>
+
+          <div class="actions">
+            <button class="ghost" id="no">Dismiss</button>
+            <button class="primary" id="yes">Use</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+
+        <button class="footer">
+          Manage passwords
+        </button>
       </div>
 
-      <div class="subtitle">
-        Use a strong generated password?
-      </div>
-
-      <div class="box" style="word-break:break-all">
-        ${generatedPassword}
-      </div>
-
-      <div class="actions">
-        <button class="ghost" id="no">Dismiss</button>
-        <button class="primary" id="yes">Use</button>
-      </div>
-    </div>
+      <div class="caret"></div>
+    </div>  
   `);
 
   positionUI(generatorPopup, passwordField);
@@ -538,7 +649,7 @@ function detectCredentialUsage() {
     },
   });
 
-  console.log("📨 PassOP: Credentials used (SPA-safe)");
+  console.log(" PassOP: Credentials used (SPA-safe)");
 }
 
 window.addEventListener("beforeunload", detectCredentialUsage);
