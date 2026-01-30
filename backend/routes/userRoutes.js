@@ -6,7 +6,6 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// SIGNUP
 router.post("/signup", async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -25,7 +24,6 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-// LOGIN
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -48,7 +46,6 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// VERIFY
 router.post("/verify-password", authMiddleware, async (req, res) => {
   try {
     const { password } = req.body;

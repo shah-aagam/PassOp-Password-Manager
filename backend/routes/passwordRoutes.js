@@ -11,21 +11,20 @@ const router = express.Router();
 const normalizeSite = (input) => {
     try {
         let urlString = input.trim().toLowerCase();
-        // Add protocol if missing so URL constructor works
+
         if (!/^https?:\/\//i.test(urlString)) {
             urlString = 'https://' + urlString;
         }
         const url = new URL(urlString);
-        // Returns "google.com" from "https://www.google.com/search"
+
         return url.hostname.replace(/^www\./i, "");
     } catch (err) {
-        // Fallback: if it's not a valid URL, just return lowercase trimmed string
+
         return input.trim().toLowerCase().replace(/^www\./i, "");
     }
 };
 
 
-// CREATE PASSWORD
 router.post("/create", authMiddleware, async (req, res) => {
     try {
         const { site, username, password } = req.body;
@@ -48,7 +47,6 @@ router.post("/create", authMiddleware, async (req, res) => {
 });
 
 
-// GET ALL PASSWORDS
 router.get("/all", authMiddleware, async (req, res) => {
     try {
         const passwords = await Password.find({
@@ -56,7 +54,6 @@ router.get("/all", authMiddleware, async (req, res) => {
             deleted: false
         }).sort({ createdAt: -1 });
 
-        // Mask passwords (same as front-end)
         const processed = passwords.map(p => ({
             ...p._doc,
             password: "*".repeat(8)
@@ -69,7 +66,6 @@ router.get("/all", authMiddleware, async (req, res) => {
 });
 
 
-// GET DECRYPTED PASSWORD (SHOW PASSWORD)
 router.get("/view/:id", authMiddleware, async (req, res) => {
     try {
         const entry = await Password.findOne({
@@ -94,7 +90,6 @@ router.get("/view/:id", authMiddleware, async (req, res) => {
     }
 });
 
-// COPY PASSWORD
 router.post("/copy/:id", authMiddleware, async (req, res) => {
   try {
     const entry = await Password.findOne({
@@ -122,8 +117,6 @@ router.post("/copy/:id", authMiddleware, async (req, res) => {
 });
 
 
-
-// UPDATE PASSWORD
 router.put("/update/:id", authMiddleware, async (req, res) => {
     try {
         const { site, username, password } = req.body;
@@ -155,7 +148,6 @@ router.put("/update/:id", authMiddleware, async (req, res) => {
 });
 
 
-// SOFT DELETE
 router.delete("/delete/:id", authMiddleware, async (req, res) => {
     try {
         await Password.findOneAndUpdate(
@@ -178,7 +170,6 @@ router.delete("/delete/:id", authMiddleware, async (req, res) => {
 
 
 
-////  EXTENSION USED ROUTES
 router.get("/by-domain", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -203,7 +194,7 @@ router.get("/by-domain", authMiddleware, async (req, res) => {
   }
 });
 
-// DECRYPT FOR EXTENSION AUTOFILL
+
 router.post("/decrypt", authMiddleware, async (req, res) => {
   try {
     const { credentialId } = req.body;

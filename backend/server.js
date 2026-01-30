@@ -36,11 +36,11 @@ app.get('/' , (req , res) => {
     res.send( "<h1>HI</h1>" );
 });
 
-app.use('/user' , userRoutes);
+app.use('/api/user' , userRoutes);
 
-app.use('/password' , passwordRoutes);
+app.use('/api/password' , passwordRoutes);
 
-app.use('/audit' , auditRoutes);
+app.use('/api/audit' , auditRoutes);
 
 
 app.listen(PORT , () => {

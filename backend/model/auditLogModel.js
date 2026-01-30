@@ -27,7 +27,7 @@ const auditLogSchema = new mongoose.Schema(
     },
 
     metadata: {
-      type: Object, // optional: IP, device, etc.
+      type: Object, 
       default: {},
     },
   },

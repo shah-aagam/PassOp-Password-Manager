@@ -15,6 +15,5 @@ export async function logAudit({
     });
   } catch (err) {
     console.error("Audit log failed:", err.message);
-    // Never block main action because of audit failure
   }
 }
