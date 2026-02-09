@@ -1,76 +1,69 @@
 # 🔐 PassOP — Secure Password Manager
 
-PassOP is a security-focused password manager designed to demonstrate how real-world password vaults work internally.  
-It emphasizes **encryption, access auditing, vault locking, and clean UX**, rather than being a simple CRUD application.
+PassOP is a **security-first password vault** designed to mirror the internal architecture of production-grade tools like **Bitwarden**.  
+Built as a developer-focused project, it prioritizes **encryption integrity, access transparency, and defense-in-depth** over simple CRUD operations.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-### 🔑 Authentication & Session Handling
-- JWT-based authentication
-- Protected routes with global auth state
-- Persistent login across reloads
-- Automatic logout on token expiry using Axios interceptors
-
-### 🔐 Vault Security
-- Auto-lock vault after inactivity (configurable)
-- Manual vault lock option
-- Re-authentication required for sensitive actions
-- Retry limit on incorrect password attempts
-
-### 🗝 Password Management
-- Secure storage using AES-based encryption
-- Passwords are decrypted **only on demand**
-- View, copy, edit, and delete passwords
-- Clipboard auto-clear after copying passwords
-
-### 🧾 Audit Logging (Key Highlight)
-- Tracks password access events:
-  - View
-  - Copy
-  - Edit
-  - Delete
-- User-visible audit timeline per password
-- Global activity page for security transparency
-
-### 🧠 UX & Product Polish
-- Grid / List view toggle
-- Search by site or username
-- Site favicons inside password cards
-- Loading states and disabled actions during async operations
-- Clean empty states and microcopy
-- Toast-based global error handling
+### 🔐 Vault Security & Encryption
+- **AES Encryption**: All credentials are encrypted using AES before database persistence — plaintext passwords never touch disk.
+- **Decryption on Demand**: Sensitive data remains encrypted in memory and is decrypted only upon explicit user action.
+- **Vault Auto-Lock**: User-configurable inactivity timeout that clears decrypted state and forces re-authentication.
+- **Clipboard Protection**: Copied passwords are automatically cleared from the clipboard after a fixed duration.
 
 ---
 
-## 🏗 Tech Stack
-
-### Frontend
-- React
-- Tailwind CSS
-- Axios
-- Context API
-
-### Backend
-- Node.js
-- Express.js
-- MongoDB
-- JWT Authentication
-- bcrypt
-- AES Encryption
+### 🧾 Comprehensive Audit Logging
+PassOP implements a **transparency-first auditing system**:
+- **Event Tracking**: Logs all password actions — view, copy, edit, and delete.
+- **Security Timeline**: Each credential maintains a dedicated activity history, reflecting enterprise-grade security visibility.
 
 ---
 
-## 🔐 Security Design Notes
+### 🧠 Modern UX Polish
+- **Adaptive UI**: Toggle between Grid and List views for high-density or focused browsing.
+- **Smart Assets**: Automatic site favicon detection for saved credentials.
+- **State Awareness**: Robust loading states and global toast-based error handling for smooth user experience.
 
-- Passwords are **never stored in plaintext**
-- Encryption occurs before database storage
-- Decryption happens only when explicitly requested
-- Sensitive actions require re-authentication
-- Vault auto-lock protects against unattended access
-- Audit logs provide full transparency to users
+---
 
-This project focuses on **security correctness**, not just UI features.
+## 🏗 System Architecture
+
+PassOP follows a **Backend-for-Frontend (BFF)** pattern to enhance security and reduce surface exposure.
+
+- **Frontend Proxy**: Uses a Vercel Serverless Function as a reverse proxy to mask backend URLs and prevent information leakage.
+- **Axios Interceptors**: Centralized JWT attachment and automatic logout on `401 Unauthorized` responses.
+- **Defense-in-Depth**: Backend hardened with layered security middleware.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|------|-----------|
+| Frontend | React, Tailwind CSS, Context API |
+| Backend | Node.js, Express.js, MongoDB (Atlas) |
+| Security | JWT, bcrypt, AES-256-CBC, Helmet.js |
+| Infrastructure | Vercel (Frontend), Render (Backend) |
+
+---
+
+## 🛡 Security Middleware
+
+The backend is protected using industry-standard security tooling:
+
+```js
+// Security hardening via Helmet and Rate Limiting
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15-minute window
+  max: 100,                // Limit each IP to 100 requests per window
+  message: "Too many requests, please try again later.",
+});
+
+app.use(limiter);
 
 
