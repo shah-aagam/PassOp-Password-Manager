@@ -1,35 +1,38 @@
 export default async function handler(req, res) {
-    const TARGET_URL = process.env.VITE_API_URL ; 
+    const TARGET_URL = process.env.VITE_API_URL;
+
     if (!TARGET_URL) {
-        return res.status(500).json({ error: "VITE_API_URL is not defined in environment" });
+        return res.status(500).json({ error: "VITE_API_URL not set" });
     }
 
-    const url = req.url; 
-
     try {
-        const options = {
+        // Remove /api prefix
+        const path = req.url.replace(/^\/api/, '');
+
+        const fetchUrl = `${TARGET_URL.replace(/\/$/, '')}${path}`;
+
+        const response = await fetch(fetchUrl, {
             method: req.method,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': req.headers.authorization || '',
+                ...(req.headers.authorization && {
+                    Authorization: req.headers.authorization
+                })
             },
-        };
+            body: ['GET', 'HEAD'].includes(req.method)
+                ? undefined
+                : JSON.stringify(req.body)
+        });
 
-        if (req.method !== 'GET' && req.method !== 'HEAD') {
-            options.body = typeof req.body === 'object' 
-                ? JSON.stringify(req.body) 
-                : req.body;
-        }
+        const text = await response.text();
 
-        const fetchUrl = `${TARGET_URL.replace(/\/$/, '')}${url}`;
-        
-        const response = await fetch(fetchUrl, options);
-        const data = await response.json();
-
-        res.status(response.status).json(data);
+        res.status(response.status).send(text);
 
     } catch (error) {
         console.error("Proxy Error:", error);
-        res.status(500).json({ error: "Backend Unreachable", details: error.message });
+        res.status(500).json({
+            error: "Backend Unreachable",
+            details: error.message
+        });
     }
 }
