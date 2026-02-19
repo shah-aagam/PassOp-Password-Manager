@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!token) return sendResponse({ error: "NOT_AUTHENTICATED" });
 
       const res = await fetch(
-        `https://passop-password-manager-8rvm.onrender.com/password/by-domain?domain=${message.domain}`,
+        `http://13.232.213.231:8000/password/by-domain?domain=${message.domain}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!token) return sendResponse({ error: "NOT_AUTHENTICATED" });
 
       const res = await fetch(
-        "https://passop-password-manager-8rvm.onrender.com/password/decrypt",
+        "http://13.232.213.231:8000/password/decrypt",
         {
           method: "POST",
           headers: {
@@ -57,7 +57,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
       const res = await fetch(
-        `https://passop-password-manager-8rvm.onrender.com/password/by-domain?domain=${site}`,
+        `http://13.232.213.231:8000/password/by-domain?domain=${site}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -72,7 +72,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const savedCred = saved[0];
 
       const decryptRes = await fetch(
-        "https://passop-password-manager-8rvm.onrender.com/password/decrypt",
+        "http://13.232.213.231:8000/password/decrypt",
         {
           method: "POST",
           headers: {
