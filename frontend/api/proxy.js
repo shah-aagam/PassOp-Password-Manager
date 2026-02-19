@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    const TARGET_URL = process.env.VITE_API_URL; 
+    const TARGET_URL = import.meta.env.VITE_API_URL; 
 
     const url = req.url; 
 
