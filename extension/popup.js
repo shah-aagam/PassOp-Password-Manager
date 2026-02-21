@@ -130,7 +130,7 @@ function renderLoggedOut() {
 
   shadow.getElementById("login").onclick = () => {
     chrome.tabs.create({
-      url: "https://pass-op-password-manager-aagam.vercel.app/login",
+      url: `${CONFIG.FRONTEND_URL}/login`,
     });
   };
 }
@@ -144,7 +144,7 @@ function renderLoggedInHome() {
       </div>
 
       <div class="subtitle">
-        You’re logged in
+        You're logged in
       </div>
 
       <div class="actions">
@@ -191,8 +191,8 @@ function renderSaveUI({ site, username, password, mode, existingId }) {
 
     const url =
       mode === "UPDATE"
-        ? `https://passop-password-manager-8rvm.onrender.com/password/update/${existingId}`
-        : `https://passop-password-manager-8rvm.onrender.com/password/create`;
+        ? `${CONFIG.BACKEND_URL}/password/update/${existingId}`
+        : `${CONFIG.BACKEND_URL}/password/create`;
 
     await fetch(url, {
       method: mode === "UPDATE" ? "PUT" : "POST",

@@ -1,3 +1,5 @@
+importScripts('config.js');
+
 let pendingSavePrompt = null;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -15,7 +17,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!token) return sendResponse({ error: "NOT_AUTHENTICATED" });
 
       const res = await fetch(
-        `http://13.232.213.231:8000/password/by-domain?domain=${message.domain}`,
+        `${CONFIG.BACKEND_URL}/password/by-domain?domain=${message.domain}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -31,7 +33,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!token) return sendResponse({ error: "NOT_AUTHENTICATED" });
 
       const res = await fetch(
-        "http://13.232.213.231:8000/password/decrypt",
+        `${CONFIG.BACKEND_URL}/password/decrypt`,
         {
           method: "POST",
           headers: {
@@ -57,7 +59,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
       const res = await fetch(
-        `http://13.232.213.231:8000/password/by-domain?domain=${site}`,
+        `${CONFIG.BACKEND_URL}/password/by-domain?domain=${site}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -72,7 +74,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const savedCred = saved[0];
 
       const decryptRes = await fetch(
-        "http://13.232.213.231:8000/password/decrypt",
+        `${CONFIG.BACKEND_URL}/password/decrypt`,
         {
           method: "POST",
           headers: {
