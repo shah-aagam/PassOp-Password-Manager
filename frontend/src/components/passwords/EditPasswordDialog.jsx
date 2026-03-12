@@ -7,15 +7,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "@/utils/axiosInstance";
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import { getPasswordStrength, strengthLabel } from "@/utils/passwordStrength";
 import { generatePassword } from "@/utils/passwordGenerator";
 import { Eye, EyeOff } from "lucide-react";
+import { encryptData } from "@/utils/cryptoUtils";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function EditPasswordDialog({ open, onClose, item, onUpdated }) {
   const [site, setSite] = useState(item.site);
   const [username, setUsername] = useState(item.username);
   const [password, setPassword] = useState("");
+
+  const { encryptionKey } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -25,19 +30,37 @@ export default function EditPasswordDialog({ open, onClose, item, onUpdated }) {
   const [numbers, setNumbers] = useState(true);
   const [symbols, setSymbols] = useState(true);
 
-  const save = async () => {
-    try {
-      await axios.put(`/password/update/${item._id}`, {
-        site,
-        username,
-        password,
-      });
-      onUpdated();
-      onClose();
-    } catch (error) {
-      console.error("Failed to update:", error);
-    }
-  };
+  useEffect(() => {
+  setSite(item.site);
+  setUsername(item.username);
+}, [item]);
+
+const save = async () => {
+  if (!password.trim()) {
+  toast.error("Password cannot be empty");
+  return;
+}
+  if (!encryptionKey) {
+    toast.error("Vault locked");
+    return;
+  }
+
+  try {
+    const encrypted = await encryptData(password, encryptionKey);
+
+    await axios.put(`/password/update/${item._id}`, {
+      site,
+      username,
+      ciphertext: encrypted.ciphertext,
+      iv: encrypted.iv,
+    });
+
+    onUpdated();
+    onClose();
+  } catch (error) {
+    console.error("Failed to update:", error);
+  }
+};
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

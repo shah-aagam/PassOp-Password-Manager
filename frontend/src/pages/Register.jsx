@@ -10,14 +10,20 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [masterPassword, setMasterPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const generateSalt = () => {
+    const salt = window.crypto.getRandomValues(new Uint8Array(16)); 
+    return btoa(String.fromCharCode(...salt));  // btoa -> binary to ASCII
+  } 
 
   const signup = () => {
     setLoading(true);
     try {
       setLoading(true);
-      if (!name || !email || !password) {
+      if (!name || !email || !password || !masterPassword) {
         toast.error("All fields are required", {
           position: "top-right",
           autoClose: 3000, 
@@ -30,10 +36,13 @@ export default function Register() {
         return;
       }
 
+      const salt = generateSalt();
+
       const res = axios.post("/user/signup", {
         name,
         email,
         password,
+        encryptionSalt: salt ,
       });
 
       navigate("/login");
@@ -91,6 +100,14 @@ export default function Register() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="bg-white/5 border-white/20 placeholder:text-zinc-500"
+          />
+
+          <Input
+            type="password"
+            placeholder="Master Password (used to encrypt vault)"
+            value={masterPassword}
+            onChange={(e) => setMasterPassword(e.target.value)}
             className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 

@@ -13,6 +13,8 @@ import { getPasswordStrength, strengthLabel } from "@/utils/passwordStrength";
 import { generatePassword } from "@/utils/passwordGenerator";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
+import { encryptData } from "@/utils/cryptoUtils";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function AddPasswordDialog({ onPasswordAdded }) {
@@ -21,6 +23,8 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const { encryptionKey } = useAuth();
 
   const strength = getPasswordStrength(password);
 
@@ -44,13 +48,21 @@ export default function AddPasswordDialog({ onPasswordAdded }) {
       return;
     }
 
+      if (!encryptionKey) {
+        toast.error("Vault is locked");
+        return;
+      }
+
     try {
       setLoading(true);
+
+      const encrypted = await encryptData(password, encryptionKey);
 
       await axios.post("/password/create", {
         site,
         username,
-        password,
+        ciphertext: encrypted.ciphertext,
+        iv: encrypted.iv,
       });
 
       setSite("");

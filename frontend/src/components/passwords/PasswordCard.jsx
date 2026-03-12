@@ -16,6 +16,8 @@ import ReAuthDialog from "@/components/auth/ReAuthDialog";
 import EditPasswordDialog from "@/components/passwords/EditPasswordDialog";
 import AuditDialog from "../audit/AuditDialog";
 import { toast } from 'react-toastify';
+import { decryptData } from "@/utils/cryptoUtils";
+import { useAuth } from "@/context/AuthContext";
 
 function PasswordCard({ item, onUpdated }) {
   const [password, setPassword] = useState(null);
@@ -24,6 +26,8 @@ function PasswordCard({ item, onUpdated }) {
   const [pendingAction, setPendingAction] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showAudit , setShowAudit] = useState(false);
+
+  const { encryptionKey } = useAuth();
 
   const isUrl = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(item.site);
   
@@ -36,16 +40,31 @@ function PasswordCard({ item, onUpdated }) {
     : null;
 
 
-  const fetchDecryptedPassword = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`/password/view/${item._id}`);
-      setPassword(res.data.password);
-      return res.data.password;
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchDecryptedPassword = async () => {
+  if (!encryptionKey) {
+    toast.error("Vault locked");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await axios.get(`/password/view/${item._id}`);
+
+    const { ciphertext, iv } = res.data;
+
+    const decrypted = await decryptData(
+      ciphertext,
+      iv,
+      encryptionKey
+    );
+
+    setPassword(decrypted);
+    return decrypted;
+  } finally {
+    setLoading(false);
+  }
+};
 
   const confirmDelete = async () => {
     await axios.delete(`/password/delete/${item._id}`);
@@ -53,24 +72,28 @@ function PasswordCard({ item, onUpdated }) {
   };
 
 const copyPassword = async () => {
+  if (!encryptionKey) {
+    toast.error("Vault locked");
+    return;
+  }
+
   const res = await axios.post(`/password/copy/${item._id}`);
 
-  await navigator.clipboard.writeText(res.data.password);
-  toast.success("Password copied", {
-    description: "Clipboard will clear automatically",
-  }, {
-    position: "top-right",
-    autoClose: 3000, // Standard 5 seconds
-    hideProgressBar: false,
-    closeOnClick: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored", 
-  });
+  const { ciphertext, iv } = res.data;
+
+  const decrypted = await decryptData(
+    ciphertext,
+    iv,
+    encryptionKey
+  );
+
+  await navigator.clipboard.writeText(decrypted);
+
+  toast.success("Password copied");
 
   setTimeout(async () => {
     const current = await navigator.clipboard.readText();
-    if (current === res.data.password) {
+    if (current === decrypted) {
       await navigator.clipboard.writeText("");
     }
   }, 20000);

@@ -21,15 +21,23 @@ const passwordSchema = new mongoose.Schema(
       trim: true,
     },
 
-    passwordEncrypted: {
+    // passwordEncrypted: {
+    //   type: String,
+    //   required: true,          // AES-256 encrypted
+    // },
+    ciphertext: {
       type: String,
-      required: true,          // AES-256 encrypted
+      required: true,    
+    },
+    iv: {
+      type: String,
+      required: true,     
     },
 
-    passwordSalt: {
-      type: String,
-      required: true,          // random salt per entry
-    },
+    // passwordSalt: {
+    //   type: String,
+    //   required: true,     
+    // },
 
     deleted: {
       type: Boolean,

@@ -37,11 +37,15 @@ export default function Login() {
         password,
       });
 
-      login(res.data.token);
-      // localStorage.setItem("token", res.data.token);
-      // localStorage.removeItem("vaultLocked");
+      const { token, encryptionSalt } = res.data;
 
-      // 🔑 SEND JWT TO EXTENSION
+      login(token);
+
+      // store salt temporarily
+      localStorage.setItem("encryptionSalt", encryptionSalt);
+
+      
+      // SEND JWT TO EXTENSION      ---------------------------------------> JWT TO EXTENSION IS SENT FROM HERE 
       window.postMessage(
         {
           type: "PASSOP_JWT",

@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function useVaultLock() {
   const token = localStorage.getItem("token");
+
+  const { setEncryptionKey } = useAuth();
 
   const [locked, setLocked] = useState(() => {
     //  Vault lock only applies if user is logged in
     if (!token) return false;
     return localStorage.getItem("vaultLocked") === "true";
   });
-
+  
   const lockVault = () => {
-    if (!token) return; //  never lock if not logged in
+    if (!token) return;
     localStorage.setItem("vaultLocked", "true");
+    setEncryptionKey(null); 
     setLocked(true);
   };
 

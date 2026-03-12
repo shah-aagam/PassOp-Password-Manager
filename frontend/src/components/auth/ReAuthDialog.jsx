@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "@/utils/axiosInstance";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
+import { deriveKey } from "@/utils/cryptoUtils";
+import { useAuth } from "@/context/AuthContext";
 
 const MAX_ATTEMPTS = 3;
 
@@ -19,6 +20,8 @@ export default function ReAuthDialog({ open, onSuccess }) {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [shake, setShake] = useState(false);
+
+  const { setEncryptionKey } = useAuth();
 
   useEffect(() => {
     if (!open) {
@@ -32,18 +35,13 @@ export default function ReAuthDialog({ open, onSuccess }) {
   const forceLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("vaultLocked");
+    localStorage.removeItem("encryptionSalt");
     window.location.href = "/login";
   };
 
-
   const confirm = async () => {
-    if (!password.trim() || loading){ 
-      toast.error("All fields are required", {
-        position: "top-right",
-        autoClose: 3000, 
-        hideProgressBar: false, 
-        pauseOnHover: false,
-      });
+    if (!password.trim() || loading) {
+      toast.error("Master password required");
       return;
     }
 
@@ -51,24 +49,28 @@ export default function ReAuthDialog({ open, onSuccess }) {
       setLoading(true);
       setError("");
 
-      await axios.post("/user/verify-password", { password });
+      const salt = localStorage.getItem("encryptionSalt");
+      if (!salt) {
+        toast.error("Encryption salt missing. Please re-login.");
+        return forceLogout();
+      }
 
-      onSuccess();
-    } catch {
+      const key = await deriveKey(password, salt);
+
+      // store key in memory
+      setEncryptionKey(key);
+
+      onSuccess(); // unlock vault
+    } catch (err) {
       setAttempts((prev) => {
         const next = prev + 1;
 
         if (next >= MAX_ATTEMPTS) {
           toast.error("Too many incorrect attempts. Logging out...", {
-            position: "top-right",
-            autoClose: 3000, 
-            hideProgressBar: false, 
-            pauseOnHover: false,
             onClose: () => forceLogout(),
           });
-
         } else {
-          setError("Incorrect password");
+          setError("Incorrect master password");
           setShake(true);
           setTimeout(() => setShake(false), 400);
         }
@@ -79,7 +81,6 @@ export default function ReAuthDialog({ open, onSuccess }) {
       setLoading(false);
     }
   };
-
 
   const lockedOut = attempts >= MAX_ATTEMPTS;
 
@@ -93,7 +94,7 @@ export default function ReAuthDialog({ open, onSuccess }) {
         <DialogHeader>
           <DialogTitle>Unlock your vault</DialogTitle>
           <p className="text-xs text-zinc-400">
-            Confirm your password to continue.
+            Enter your master password to decrypt vault.
           </p>
         </DialogHeader>
 
@@ -109,7 +110,7 @@ export default function ReAuthDialog({ open, onSuccess }) {
           <Input
             autoFocus
             type="password"
-            placeholder="Account password"
+            placeholder="Master password"
             disabled={lockedOut}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -117,11 +118,7 @@ export default function ReAuthDialog({ open, onSuccess }) {
           />
 
           {error && (
-            <p className="text-sm text-red-400">
-              {lockedOut
-                ? "Too many failed attempts. Please wait or re-login."
-                : error}
-            </p>
+            <p className="text-sm text-red-400">{error}</p>
           )}
 
           <Button
@@ -129,7 +126,7 @@ export default function ReAuthDialog({ open, onSuccess }) {
             disabled={loading || lockedOut}
             className="w-full bg-violet-600 hover:bg-violet-700"
           >
-            {loading ? "Verifying…" : "Unlock"}
+            {loading ? "Decrypting…" : "Unlock"}
           </Button>
         </motion.form>
       </DialogContent>

@@ -27,16 +27,14 @@ const normalizeSite = (input) => {
 
 router.post("/create", authMiddleware, async (req, res) => {
     try {
-        const { site, username, password } = req.body;
-
-        const encrypted = encrypt(password);  // AES encrypt
+        const { site, username, ciphertext, iv } = req.body;
 
         const entry = await Password.create({
-            userId: req.user.userId,
-            site,
-            username,
-            passwordEncrypted: encrypted,
-            passwordSalt: encrypted.split(":")[0],
+        userId: req.user.userId,
+        site,
+        username,
+        ciphertext,
+        iv
         });
 
         res.json({ message: "Password saved", entry });
@@ -75,7 +73,6 @@ router.get("/view/:id", authMiddleware, async (req, res) => {
 
         if (!entry) return res.status(404).json({ message: "Not found" });
 
-        const decryptedPassword = decrypt(entry.passwordEncrypted);
 
         await logAudit({
             userId: req.user.userId,
@@ -83,7 +80,7 @@ router.get("/view/:id", authMiddleware, async (req, res) => {
             action: "VIEW_PASSWORD",
         });
 
-        res.json({ password: decryptedPassword });
+        res.json({ ciphertext: entry.ciphertext, iv: entry.iv });
 
     } catch (err) {
         res.status(500).json({ message: "Server error", err });
@@ -95,13 +92,12 @@ router.post("/copy/:id", authMiddleware, async (req, res) => {
     const entry = await Password.findOne({
       _id: req.params.id,
       userId: req.user.userId,
+      deleted: false,
     });
 
     if (!entry) {
       return res.status(404).json({ message: "Not found" });
     }
-
-    const decryptedPassword = decrypt(entry.passwordEncrypted);
 
     await logAudit({
       userId: req.user.userId,
@@ -109,7 +105,10 @@ router.post("/copy/:id", authMiddleware, async (req, res) => {
       action: "COPY_PASSWORD",
     });
 
-    res.json({ password: decryptedPassword });
+    res.json({
+      ciphertext: entry.ciphertext,
+      iv: entry.iv,
+    });
 
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -118,33 +117,31 @@ router.post("/copy/:id", authMiddleware, async (req, res) => {
 
 
 router.put("/update/:id", authMiddleware, async (req, res) => {
-    try {
-        const { site, username, password } = req.body;
+  try {
+    const { site, username, ciphertext, iv } = req.body;
 
-        const encrypted = encrypt(password);
+    const updated = await Password.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.userId },
+      {
+        site,
+        username,
+        ciphertext,
+        iv,
+      },
+      { new: true }
+    );
 
-        const updated = await Password.findOneAndUpdate(
-            { _id: req.params.id, userId: req.user.userId },
-            {
-                site,
-                username,
-                passwordEncrypted: encrypted,
-                passwordSalt: encrypted.split(":")[0],
-            },
-            { new: true }
-        );
+    await logAudit({
+      userId: req.user.userId,
+      passwordId: updated._id,
+      action: "EDIT_PASSWORD",
+    });
 
-        await logAudit({
-            userId: req.user.userId,
-            passwordId: updated._id,
-            action: "EDIT_PASSWORD",
-        });
+    res.json({ message: "Updated", updated });
 
-        res.json({ message: "Updated", updated });
-
-    } catch (err) {
-        res.status(500).json({ message: "Server error", err });
-    }
+  } catch (err) {
+    res.status(500).json({ message: "Server error", err });
+  }
 });
 
 
@@ -185,45 +182,12 @@ router.get("/by-domain", authMiddleware, async (req, res) => {
       userId: userId,        
       site: normalizedDomain, 
       deleted: false           
-    }).select("username passwordEncrypted site");
+    }).select("username ciphertext iv site");
 
     res.json(passwords);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch credentials" });
-  }
-});
-
-
-router.post("/decrypt", authMiddleware, async (req, res) => {
-  try {
-    const { credentialId } = req.body;
-
-    const entry = await Password.findOne({
-      _id: credentialId,
-      userId: req.user.userId,
-      deleted: false,
-    });
-
-    if (!entry) {
-      return res.status(404).json({ message: "Not found" });
-    }
-
-    const decryptedPassword = decrypt(entry.passwordEncrypted);
-
-    await logAudit({
-      userId: req.user.userId,
-      passwordId: entry._id,
-      action: "AUTOFILL_PASSWORD",
-    });
-
-    res.json({
-      username: entry.username,
-      password: decryptedPassword,
-    });
-
-  } catch (err) {
-    res.status(500).json({ message: "Decryption failed" });
   }
 });
 
