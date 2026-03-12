@@ -16,9 +16,20 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'https://your-backend-url.onrender.com',
+          target: env.VITE_API_URL || 'http://localhost:5000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq, req) => {
+              console.log('Proxying:', req.method, req.url, '→', proxyReq.path);
+            });
+            proxy.on('proxyRes', (proxyRes, req) => {
+              console.log('Response:', proxyRes.statusCode, req.url);
+            });
+            proxy.on('error', (err) => {
+              console.log('Proxy error:', err.message);
+            });
+          }
         }
       }
     }
