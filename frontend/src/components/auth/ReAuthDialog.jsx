@@ -9,23 +9,23 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { deriveKey } from "@/utils/cryptoUtils";
+import { deriveMasterKey, checkVerifier } from "@/utils/cryptoUtils";
 import { useAuth } from "@/context/AuthContext";
 
 const MAX_ATTEMPTS = 3;
 
 export default function ReAuthDialog({ open, onSuccess }) {
-  const [password, setPassword] = useState("");
+  const [masterPassword, setMasterPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [shake, setShake] = useState(false);
 
-  const { setEncryptionKey } = useAuth();
+  const { encryptionSalt, vaultVerifier, setEncryptionKey } = useAuth(); // ← from context
 
   useEffect(() => {
     if (!open) {
-      setPassword("");
+      setMasterPassword("");
       setError("");
       setAttempts(0);
       setShake(false);
@@ -35,48 +35,53 @@ export default function ReAuthDialog({ open, onSuccess }) {
   const forceLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("vaultLocked");
-    localStorage.removeItem("encryptionSalt");
     window.location.href = "/login";
   };
 
   const confirm = async () => {
-    if (!password.trim() || loading) {
+    if (!masterPassword.trim() || loading) {
       toast.error("Master password required");
       return;
     }
 
-    try {
-      setLoading(true);
-      setError("");
+    setLoading(true);
+    setError("");
 
-      const salt = localStorage.getItem("encryptionSalt");
-      if (!salt) {
-        toast.error("Encryption salt missing. Please re-login.");
+    try {
+      if (!encryptionSalt || !vaultVerifier) {
+        toast.error("Session expired. Please re-login.");
         return forceLogout();
       }
 
-      const key = await deriveKey(password, salt);
+      // derive key from master password + salt
+      const key = await deriveMasterKey(masterPassword, encryptionSalt);
 
-      // store key in memory
-      setEncryptionKey(key);
+      // verify it's correct using vaultVerifier
+      const isCorrect = await checkVerifier(key, vaultVerifier);
 
-      onSuccess(); // unlock vault
-    } catch (err) {
-      setAttempts((prev) => {
-        const next = prev + 1;
+      if (!isCorrect) {
+        // wrong master password
+        const next = attempts + 1;
+        setAttempts(next);
 
         if (next >= MAX_ATTEMPTS) {
           toast.error("Too many incorrect attempts. Logging out...", {
             onClose: () => forceLogout(),
           });
         } else {
-          setError("Incorrect master password");
+          setError(`Incorrect master password. ${MAX_ATTEMPTS - next} attempts left.`);
           setShake(true);
           setTimeout(() => setShake(false), 400);
         }
+        return;
+      }
 
-        return next;
-      });
+      // correct — store key in context and unlock
+      setEncryptionKey(key);
+      onSuccess();
+
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,15 +99,12 @@ export default function ReAuthDialog({ open, onSuccess }) {
         <DialogHeader>
           <DialogTitle>Unlock your vault</DialogTitle>
           <p className="text-xs text-zinc-400">
-            Enter your master password to decrypt vault.
+            Enter your master password to decrypt your vault.
           </p>
         </DialogHeader>
 
         <motion.form
-          onSubmit={(e) => {
-            e.preventDefault();
-            confirm();
-          }}
+          onSubmit={(e) => { e.preventDefault(); confirm(); }}
           animate={shake ? { x: [-8, 8, -6, 6, 0] } : {}}
           transition={{ duration: 0.4 }}
           className="space-y-4"
@@ -112,14 +114,12 @@ export default function ReAuthDialog({ open, onSuccess }) {
             type="password"
             placeholder="Master password"
             disabled={lockedOut}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={masterPassword}
+            onChange={(e) => setMasterPassword(e.target.value)}
             className="bg-white/5 border-white/20 placeholder:text-zinc-500"
           />
 
-          {error && (
-            <p className="text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <Button
             type="submit"

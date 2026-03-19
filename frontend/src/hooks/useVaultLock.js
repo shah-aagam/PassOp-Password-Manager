@@ -1,21 +1,39 @@
+// Now the full refresh flow is:
+
+// User refreshes page
+//   → encryptionKey = null (memory wiped)
+//   → useEffect detects key is missing
+//   → sets vaultLocked = true
+//   → user sees unlock screen
+//   → enters master password
+//   → key re-derived from sessionStorage salt + verifier
+//   → vault opens 
+
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function useVaultLock() {
   const token = localStorage.getItem("token");
-
-  const { setEncryptionKey } = useAuth();
+  const { setEncryptionKey, encryptionKey } = useAuth();
 
   const [locked, setLocked] = useState(() => {
-    //  Vault lock only applies if user is logged in
     if (!token) return false;
     return localStorage.getItem("vaultLocked") === "true";
   });
-  
+
+  // if key is gone after refresh → force lock
+  useEffect(() => {
+    if (token && !encryptionKey) {
+      localStorage.setItem("vaultLocked", "true");
+      setLocked(true);
+    }
+  }, [encryptionKey, token]);
+
   const lockVault = () => {
     if (!token) return;
     localStorage.setItem("vaultLocked", "true");
-    setEncryptionKey(null); 
+    setEncryptionKey(null);
     setLocked(true);
   };
 
@@ -24,16 +42,13 @@ export default function useVaultLock() {
     setLocked(false);
   };
 
-  /* RESET vault lock on logout/login */
   useEffect(() => {
     if (!token) {
-      // User logged out → clear vault lock
       localStorage.removeItem("vaultLocked");
       setLocked(false);
     }
   }, [token]);
 
-  /* ⏱ AUTO-LOCK (ONLY WHEN LOGGED IN) */
   useEffect(() => {
     if (!token) return;
 
@@ -41,7 +56,6 @@ export default function useVaultLock() {
 
     const resetTimer = () => {
       clearTimeout(timer);
-
       const minutes = Number(localStorage.getItem("autoLock") || 5);
       timer = setTimeout(() => {
         lockVault();
@@ -50,7 +64,6 @@ export default function useVaultLock() {
 
     window.addEventListener("mousemove", resetTimer);
     window.addEventListener("keydown", resetTimer);
-
     resetTimer();
 
     return () => {

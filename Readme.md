@@ -1,69 +1,109 @@
-# 🔐 PassOP — Secure Password Manager
+# PassOp — Password Manager
 
-PassOP is a **security-first password vault** designed to mirror the internal architecture of production-grade tools like **Bitwarden**.  
-Built as a developer-focused project, it prioritizes **encryption integrity, access transparency, and defense-in-depth** over simple CRUD operations.
-
----
-
-## 🚀 Key Features
-
-### 🔐 Vault Security & Encryption
-- **AES Encryption**: All credentials are encrypted using AES before database persistence — plaintext passwords never touch disk.
-- **Decryption on Demand**: Sensitive data remains encrypted in memory and is decrypted only upon explicit user action.
-- **Vault Auto-Lock**: User-configurable inactivity timeout that clears decrypted state and forces re-authentication.
-- **Clipboard Protection**: Copied passwords are automatically cleared from the clipboard after a fixed duration.
+A full-stack password manager built with a focus on client-side encryption. Passwords are encrypted in the browser before reaching the server, meaning even a compromised database exposes nothing useful to an attacker.
 
 ---
 
-### 🧾 Comprehensive Audit Logging
-PassOP implements a **transparency-first auditing system**:
-- **Event Tracking**: Logs all password actions — view, copy, edit, and delete.
-- **Security Timeline**: Each credential maintains a dedicated activity history, reflecting enterprise-grade security visibility.
+## How It Works
+
+The core idea is simple: the server never sees your actual passwords.
+
+When you save a password, it is encrypted on your device using an AES-256 key derived from your master password. The server stores only the encrypted ciphertext. When you want to view or copy a password, the ciphertext is fetched and decrypted locally in your browser.
+
+The master password never leaves your device.
 
 ---
 
-### 🧠 Modern UX Polish
-- **Adaptive UI**: Toggle between Grid and List views for high-density or focused browsing.
-- **Smart Assets**: Automatic site favicon detection for saved credentials.
-- **State Awareness**: Robust loading states and global toast-based error handling for smooth user experience.
+## Encryption Model
+
+Key derivation uses PBKDF2 with SHA-256 and 310,000 iterations — the OWASP recommended minimum. This makes brute-force attacks against a stolen database computationally expensive.
+
+```
+masterPassword + randomSalt
+  → PBKDF2 (310,000 iterations)
+  → AES-256-GCM encryption key
+  → used to encrypt / decrypt vault entries
+```
+
+To verify the master password at unlock without storing it server-side, a small test value is encrypted at registration and stored as a verifier. On unlock, decryption is attempted — success confirms the correct master password, failure rejects it. AES-GCM handles this natively by throwing on a wrong key.
 
 ---
 
-## 🏗 System Architecture
+## Tech Stack
 
-PassOP follows a **Backend-for-Frontend (BFF)** pattern to enhance security and reduce surface exposure.
+**Frontend**
+- React + Vite
+- Tailwind CSS
+- Framer Motion
+- Web Crypto API (native browser encryption)
 
-- **Frontend Proxy**: Uses a Vercel Serverless Function as a reverse proxy to mask backend URLs and prevent information leakage.
-- **Axios Interceptors**: Centralized JWT attachment and automatic logout on `401 Unauthorized` responses.
-- **Defense-in-Depth**: Backend hardened with layered security middleware.
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|------|-----------|
-| Frontend | React, Tailwind CSS, Context API |
-| Backend | Node.js, Express.js, MongoDB (Atlas) |
-| Security | JWT, bcrypt, AES-256-CBC, Helmet.js |
-| Infrastructure | Vercel (Frontend), Render (Backend) |
+**Backend**
+- Node.js + Express
+- MongoDB + Mongoose
+- bcrypt, JSON Web Tokens
 
 ---
 
-## 🛡 Security Middleware
+## Features
 
-The backend is protected using industry-standard security tooling:
+- Client-side AES-256-GCM encryption — server stores only ciphertext
+- Master password never transmitted or stored
+- Vault auto-locks after configurable inactivity period
+- Password strength indicator
+- Strong password generator
+- Copy to clipboard with auto-clear after 20 seconds
+- Audit log per entry — tracks view, copy, edit, delete actions
+- Grid and list view for vault entries
 
-```js
-// Security hardening via Helmet and Rate Limiting
-app.use(helmet());
+---
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15-minute window
-  max: 100,                // Limit each IP to 100 requests per window
-  message: "Too many requests, please try again later.",
-});
+## Security Notes
 
-app.use(limiter);
+| What                   | Where it lives                              |
+|------------------------|---------------------------------------------|
+| JWT token              | localStorage                                |
+| encryptionSalt         | sessionStorage (cleared on tab close)       |
+| vaultVerifier          | sessionStorage (cleared on tab close)       |
+| encryptionKey          | React context memory (wiped on refresh)     |
+| masterPassword         | Never stored anywhere                       |
+| Actual passwords       | Never sent to server                        |
 
+Refreshing the page wipes the encryption key from memory. The vault locks automatically and requires the master password to re-derive the key. This is intentional.
+
+---
+
+## Getting Started
+
+**Prerequisites:** Node.js, MongoDB
+
+```bash
+# Clone the repo
+git clone https://github.com/your-username/PassOp-Password-Manager.git
+
+# Backend
+cd backend
+npm install
+cp .env.example .env   # add your JWT_SECRET and MONGODB_URI
+node server.js
+
+# Frontend
+cd frontend
+npm install
+pnpm run dev
+```
+
+---
+
+## Environment Variables
+
+```
+# backend/.env
+MONGODB_URI=
+JWT_SECRET=
+
+# frontend/.env
+VITE_API_URL=
+```
+
+---
 

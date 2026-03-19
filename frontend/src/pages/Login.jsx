@@ -37,9 +37,9 @@ export default function Login() {
         password,
       });
 
-      const { token, encryptionSalt } = res.data;
+      const { token, encryptionSalt , vaultVerifier } = res.data;
 
-      login(token);
+      login(token, encryptionSalt , vaultVerifier);
 
       // store salt temporarily
       localStorage.setItem("encryptionSalt", encryptionSalt);
